@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Exec(find)",
+      "Exec(git)",
+      "Exec(python)",
+      "Exec(pip install)",
+      "Exec(mkdir)",
+      "Exec(touch)",
+      "Exec(cp)",
+      "Exec(sed)",
+      "Exec(grep)",
+      "Exec(cat)",
+      "Exec(ls)",
+      "Exec(rm)",
+      "Exec(curl)",
+      "Exec(taskkill)",
+      "Exec(\"C:/Program Files/Google/Chrome/Application/chrome.exe\")",
+      "Exec(findstr)",
+      "Exec(tasklist)",
+      "Exec(ssh)",
+      "Exec(ssh-keygen)",
+      "Exec(python3)",
+      "Exec(scp)",
+      "Exec(tar czf)",
+      "Exec(sleep)",
+      "Exec(ping)",
+      "Exec(dir)",
+      "Exec(where)",
+      "Exec(true)",
+      "Exec(eval)"
+    ]
+  }
+}

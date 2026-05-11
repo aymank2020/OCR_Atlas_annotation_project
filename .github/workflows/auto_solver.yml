@@ -1,0 +1,104 @@
+# GitHub Actions: Serverless Auto-Solver
+# Operation Phoenix Atlas — VPS Backup Plan
+#
+# Runs atlas_web_auto_solver.py on demand or on schedule.
+# All secrets stored in GitHub Settings → Secrets → Actions.
+#
+# Usage:
+#   - Manual: Actions tab → "Atlas Auto-Solver" → "Run workflow"
+#   - Scheduled: Every 6 hours (configurable below)
+
+name: Atlas Auto-Solver
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_episodes:
+        description: 'Max episodes to process'
+        required: false
+        default: '3'
+      dry_run:
+        description: 'Dry run (no actual submission)'
+        required: false
+        default: false
+        type: boolean
+  # Uncomment to enable scheduled runs:
+  # schedule:
+  #   - cron: '0 */6 * * *'  # Every 6 hours
+
+jobs:
+  auto-solve:
+    name: Run Auto-Solver
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Cache pip
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-solver-${{ hashFiles('requirements.txt') }}
+
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install requests pyyaml playwright pydantic python-dotenv \
+                    google-generativeai openai anthropic opencv-python-headless
+        playwright install chromium --with-deps
+
+    - name: Create .env from secrets
+      run: |
+        cat > .env << 'EOF'
+        ATLAS_LOGIN_EMAIL=${{ secrets.ATLAS_LOGIN_EMAIL }}
+        ATLAS_EMAIL=${{ secrets.ATLAS_LOGIN_EMAIL }}
+        GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+        GEMINI_API_KEY_FALLBACK=${{ secrets.GEMINI_API_KEY_FALLBACK }}
+        OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+        ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+        GMAIL_USER=${{ secrets.GMAIL_USER }}
+        GMAIL_EMAIL=${{ secrets.GMAIL_USER }}
+        GMAIL_APP_PASSWORD=${{ secrets.GMAIL_APP_PASSWORD }}
+        GMAIL_IMAP_SERVER=imap.gmail.com
+        EOF
+
+    - name: Run auto-solver
+      env:
+        ATLAS_LOGIN_EMAIL: ${{ secrets.ATLAS_LOGIN_EMAIL }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        GMAIL_USER: ${{ secrets.GMAIL_USER }}
+        GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+      run: |
+        if [ "${{ inputs.dry_run }}" = "true" ]; then
+          echo "🔍 DRY RUN MODE"
+          python atlas_web_auto_solver.py --dry-run 2>&1 | tee solver_output.log
+        else
+          echo "🚀 PRODUCTION MODE — Max episodes: ${{ inputs.max_episodes }}"
+          timeout 6000 python atlas_web_auto_solver.py 2>&1 | tee solver_output.log || true
+        fi
+
+    - name: Upload logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: solver-logs-${{ github.run_number }}
+        path: |
+          solver_output.log
+          outputs/
+          .state/
+        retention-days: 7
+
+    - name: Upload selector health report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: selector-health-${{ github.run_number }}
+        path: outputs/selector_health.jsonl
+        retention-days: 14

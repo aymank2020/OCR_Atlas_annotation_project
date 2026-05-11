@@ -1,0 +1,686 @@
+Starting CodeRabbit review in plain text mode...
+
+Connecting to review service
+Setting up
+Analyzing
+Reviewing
+
+============================================================================
+File: full_review2.md
+Line: 226 to 248
+Type: potential_issue
+
+Comment:
+Incomplete proposed fix for grep portability issue.
+
+Line 240 contains a truncated code snippet. The proposed portable alternative to grep -oP appears to be cut off mid-expression:
+
+
+FOLDER_ID=$(echo "$DRIVE_LINK" | grep -oP '(?
+
+
+This incomplete fix makes the finding difficult to action. Please ensure the full portable alternative (using sed, bash regex, or awk) is included.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @full_review2.md around lines 226 - 248, Replace the non-portable grep -oP used to extract FOLDER_ID from DRIVE_LINK in run_production.sh with a portable approach: use a bash =~ regex match against DRIVE_LINK to capture the folder id (e.g., match the "/folders/([^/?#&]+)" group) and assign the first capture to FOLDER_ID, defaulting to an empty string if no match; remove the grep -oP invocation so subsequent logic that references FOLDER_ID uses the newly assigned value on both macOS and Linux.
+
+
+
+============================================================================
+File: atlas_discord_bot.py
+Line: 94
+Type: potential_issue
+
+Comment:
+Consider privacy implications of logging user content.
+
+This logs the message author and content preview, which may contain PII. For production use, consider redacting or omitting user-identifiable information from logs, or ensuring logs are properly secured.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_discord_bot.py at line 94, The log statement using logger.info that currently includes message.author and content (the line calling logger.info with f"Captured knowledge from {message.author}: {content[:50]}...") exposes PII; change it to avoid direct user-identifiable data by removing or redacting the author and/or content preview (e.g., log message.author.id or a fixed "[redacted]" label, or log a non-reversible hash of the content instead of plain text) and keep the rest of the context; update the logger.info call accordingly in atlas_discord_bot.py so it no longer writes raw author names or message text to logs.
+
+
+
+============================================================================
+File: atlas_discord_bot.py
+Line: 29 to 32
+Type: potential_issue
+
+Comment:
+Chain the exception for better debugging.
+
+The raise statement discards the original ImportError traceback. Use from err to preserve the exception chain.
+
+
+
+
+Proposed fix
+
+ try:
+     import discord
+-except ImportError:
+-    raise RuntimeError("discord.py package not installed. Run: pip install discord.py")
++except ImportError as err:
++    raise RuntimeError("discord.py package not installed. Run: pip install discord.py") from err
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_discord_bot.py around lines 29 - 32, The ImportError raised when trying to import discord discards the original traceback; in the try/except around the import (the block that imports discord), catch the ImportError as a variable (e.g., err) and re-raise the RuntimeError using exception chaining (raise RuntimeError("discord.py package not installed. Run: pip install discord.py") from err) so the original ImportError is preserved for debugging.
+
+
+
+============================================================================
+File: atlas_discord_bot.py
+Line: 169 to 175
+Type: potential_issue
+
+Comment:
+Exit with non-zero status on configuration errors.
+
+Returning from main() without sys.exit(1) means the script exits with code 0, indicating success. This can mislead orchestration tools or systemd when the bot fails to start.
+
+
+
+
+Proposed fix
+
+Add to imports:
+import sys
+
+
+     if not token:
+         logger.error("Discord Bot Token is required. Pass --token or set DISCORD_BOT_TOKEN.")
+-        return
++        sys.exit(1)
+         
+     if not args.channel:
+         logger.error("Target channel ID is required. Pass --channel.")
+-        return
++        sys.exit(1)
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_discord_bot.py around lines 169 - 175, The current main() returns on missing configuration (token or args.channel) which yields exit code 0; import sys and replace the plain returns after logger.error(...) with sys.exit(1) so the process exits with a non-zero status on configuration errors; update the checks around token and args.channel in main() (the blocks that log via logger.error) to call sys.exit(1) instead of return and ensure sys is imported at top of the file.
+
+
+
+============================================================================
+File: atlas_dashboard_v2.py
+Line: 158 to 178
+Type: potential_issue
+
+Comment:
+7-day trend computation has fragile date extraction and year-boundary sorting issue.
+
+1. Using st_mtime is unreliable - file operations (copy, git checkout) can alter modification times.
+2. The %m-%d format causes incorrect sorting across year boundaries (e.g., 12-31 sorts after 01-01).
+
+Consider using a timestamp field from the result data (e.g., queued_at, processed_at) if available, and include the year in the sort key while displaying only MM-DD.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_dashboard_v2.py around lines 158 - 178, The trend code currently relies on file st_mtime and stores dates as "%m-%d" which breaks sorting across years; change the extraction to prefer a timestamp field from each result (e.g., r.get("queued_at") or r.get("processed_at")), parse it into a timezone-aware datetime, fall back to result_path.stat().st_mtime only if those fields are absent, store the parsed datetime (or date) in the trend mapping (e.g., trend[date_obj] = {"pass":..., "fail":...}), sort by the datetime keys to pick the last 7 days, and when populating m["trend_7d"] format the key for display with date_obj.strftime("%m-%d") so sorting uses full date but display remains MM-DD; update references to results, outputs_dir, result_path, and m["trend_7d"] accordingly.
+
+
+
+============================================================================
+File: atlas_dashboard_v2.py
+Line: 256 to 269
+Type: potential_issue
+
+Comment:
+Potential XSS: Missing html.escape() for user-controlled values in table rows.
+
+The cat, model, and status values from JSON files are rendered without escaping, unlike other table rows that properly use html.escape().
+
+
+🔒 Suggested fix
+
+     # Knowledge rows
+     know_rows = "".join(
+-        f"{cat}{cnt}"
++        f"{html.escape(cat)}{cnt}"
+         for cat, cnt in m.get("knowledge_by_category", {}).items()
+     )
+     # Cost by model
+     cost_rows = "".join(
+-        f"{model[:35]}${cost:.4f}"
++        f"{html.escape(model[:35])}${cost:.4f}"
+         for model, cost in m.get("cost_by_model", [])
+     )
+     # Episode status
+     status_rows = "".join(
+-        f"{status}{cnt}"
++        f"{html.escape(status)}{cnt}"
+         for status, cnt in m.get("episode_status", {}).items()
+     )
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_dashboard_v2.py around lines 256 - 269, Escape user-controlled strings when building table rows: wrap cat and status with html.escape (e.g., html.escape(cat), html.escape(status)) and for model escape before rendering/truncating (e.g., html.escape(model)[:35]) in the expressions that create know_rows, cost_rows, and status_rows (they call m.get("knowledge_by_category", {}), m.get("cost_by_model", []), and m.get("episode_status", {})). Also ensure the html module is imported (import html) if not already present.
+
+
+
+============================================================================
+File: sample_web_auto_solver_production.yaml.save
+Line: 2
+Type: potential_issue
+
+Comment:
+Remove backslash escape from comment character.
+
+The \# is unusual YAML syntax. Standard YAML comments use just #.
+
+
+
+📝 Proposed fix
+
+-\# ═══════════════════════════════════════════════════════════════════════
++# ═══════════════════════════════════════════════════════════════════════
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @sample_web_auto_solver_production.yaml.save at line 2, Remove the backslash escaping the comment character: replace the literal "\#" at the start of the line (the escaped comment marker) with a standard YAML comment "#" so the line begins with "#" followed by the decoration characters (e.g., change "\# ═════════..." to "# ═════════..."); ensure no other backslashes are left before comment markers elsewhere in the file.
+
+
+
+============================================================================
+File: sample_web_auto_solver_production.yaml.save
+Line: 29
+Type: potential_issue
+
+Comment:
+Duplicate key segment_chunking_enabled - this value is overridden.
+
+This key is defined again on line 68 with value false. In YAML, duplicate keys result in the later value overriding the earlier one. This makes line 29's true value dead configuration.
+
+
+
+🐛 Proposed fix - remove duplicate or consolidate
+
+Either remove line 29 since line 68's value takes precedence, or consolidate these related settings together:
+
+-  segment_chunking_enabled: true
+
+
+The intended behavior appears to be "full-video-first with chunking fallback" as documented on lines 67-69, so the false value on line 68 is likely correct.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @sample_web_auto_solver_production.yaml.save at line 29, Duplicate YAML key segment_chunking_enabled is defined twice causing the earlier value to be ignored; remove the redundant declaration (the one that sets segment_chunking_enabled: true) so only the intended value (segment_chunking_enabled: false) remains, or consolidate the related config entries into one block so there is a single authoritative segment_chunking_enabled setting consistent with the "full-video-first with chunking fallback" behavior.
+
+
+
+============================================================================
+File: run_production.sh
+Line: 195
+Type: potential_issue
+
+Comment:
+grep -oP requires GNU grep; not portable to macOS/BSD.
+
+The -P (Perl-compatible regex) flag is GNU grep specific. On macOS, this will fail with "invalid option". Consider using a more portable approach.
+
+
+
+🛠️ Portable alternatives
+
+-  FOLDER_ID=$(echo "$DRIVE_LINK" | grep -oP '(?
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @run_production.sh at line 195, Replace the GNU grep usage that sets FOLDER_ID from DRIVE_LINK; instead extract the segment after "/folders/" using portable bash parameter expansion on the DRIVE_LINK variable (remove the prefix up to "/folders/" then strip any trailing query params or extra path components), and ensure FOLDER_ID falls back to empty if the pattern isn't present so the rest of the script behaves the same as the original grep-based approach.
+
+
+
+============================================================================
+File: pipeline_runner.py
+Line: 696
+Type: potential_issue
+
+Comment:
+Use public API set_console_output_enabled(False) instead of accessing private attribute.
+
+agent._disable_console_output is a private attribute that may change or be removed in future AgentScope versions. AgentScope provides the public method set_console_output_enabled(False) specifically for this purpose, which is the safe, documented way to disable console output.
+
+
+Recommended fix
+
+         # Keep CLI output clean when AgentScope is used inside pipeline stages.
+-        agent._disable_console_output = True  # type: ignore[attr-defined]
++        agent.set_console_output_enabled(False)
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @pipeline_runner.py at line 696, Replace the direct private attribute access agent._disable_console_output = True with the public API call agent.set_console_output_enabled(False); locate the occurrence where agent._disable_console_output is set (in code using the Agent instance) and change it to agent.set_console_output_enabled(False) to avoid using a private attribute and ensure forward compatibility with AgentScope.
+
+
+
+============================================================================
+File: specs/001-4way-episode-solver/spec.md
+Line: 34
+Type: potential_issue
+
+Comment:
+Fix typo in acceptance scenario numbering.
+
+Line 34 has 3.gIVEN which should be 3. Given to match the formatting pattern of other scenarios.
+
+
+-3.gIVEN نجمع الحلول الاربعة ونقارنهم ببعض ونختار الافضل او ننشئ حل جديد فيه مجموع ما تم حله من كل طريقة  WHEN يتم تشغيل 4-way pipeline, Then طريقة واحدة على الأقل تنتج حل بجودة ≥95%.
++3. Given نجمع الحلول الاربعة ونقارنهم ببعض ونختار الافضل او ننشئ حل جديد فيه مجموع ما تم حله من كل طريقة  When يتم تشغيل 4-way pipeline, Then طريقة واحدة على الأقل تنتج حل بجودة ≥95%.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @specs/001-4way-episode-solver/spec.md at line 34, Replace the typo "3.gIVEN" with the correctly cased and spaced header "3. Given" in the acceptance scenario so it matches other scenario formatting; search for the exact token "3.gIVEN" in the spec content and update it to "3. Given" (preserving the rest of the sentence and punctuation).
+
+
+
+============================================================================
+File: README.md
+Line: 183 to 189
+Type: potential_issue
+
+Comment:
+Consider using forward slashes in Drive URL examples for clarity.
+
+The Drive link examples use backslash separators between the folder URL and filename. While the code at line 271 of atlas_triplet_compare.py explicitly normalizes backslashes to forward slashes (src.replace("\\", "/")), using forward slashes in documentation examples would be clearer and more universal:
+
+Instead of:
+
+https://drive.google.com/drive/folders/?usp=sharing\video_68d3c4ff...
+
+
+Consider:
+
+https://drive.google.com/drive/folders/?usp=sharing/video_68d3c4ff...
+
+
+Both formats work, but forward slashes are less likely to confuse users on Linux/macOS systems.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @README.md around lines 183 - 189, Update the README Drive URL examples to use forward slashes instead of backslashes so examples match common UNIX conventions and avoid confusion; specifically change the paths shown in the snippet (the --video-path, --video-path-limit, --tier2-path, --api-path, --chat-path, --task-state-path, --labels-path entries) to use "/filename" after the query string (e.g., ?usp=sharing/video_...) — this keeps docs consistent with the normalization logic in atlas_triplet_compare.py (src.replace("\\", "/")).
+
+
+
+============================================================================
+File: atlas_discord_bot.py
+Line: 71 to 72
+Type: potential_issue
+
+Comment:
+self.loop is deprecated in discord.py 2.0+; use asyncio.create_task() instead.
+
+The loop attribute on discord.Client was removed in discord.py 2.0+ to support the newer asyncio.run() pattern. Since on_ready() is already an async context, call asyncio.create_task() directly.
+
+
+Proposed fix
+
+         # Start background flush task
+-        self.loop.create_task(self._background_flush())
++        asyncio.create_task(self._background_flush())
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_discord_bot.py around lines 71 - 72, Replace usage of the removed Client.loop attribute by creating the background task with asyncio.create_task instead of self.loop.create_task; so in the on_ready (or wherever you call self.loop.create_task(self._background_flush())), call asyncio.create_task(self._background_flush()) to schedule the _background_flush coroutine from the async context.
+
+
+
+============================================================================
+File: atlas_triplet_compare.py
+Line: 2183 to 2188
+Type: potential_issue
+
+Comment:
+Avoid bare except: clause.
+
+The bare except: on line 2186 catches SystemExit and KeyboardInterrupt, which prevents proper program termination. Use except Exception: instead.
+
+
+
+🐛 Proposed fix
+
+     finally:
+         try:
+             chat_page.close()
+-        except:
++        except Exception:
+             pass
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_triplet_compare.py around lines 2183 - 2188, The finally block currently uses a bare except when calling chat_page.close(), which can swallow SystemExit/KeyboardInterrupt; change the bare except to except Exception: (or a more specific exception) around the chat_page.close() call and optionally log the error; update the try/except in the finally where chat_page.close() is invoked to use except Exception: to avoid catching termination signals.
+
+
+
+============================================================================
+File: atlas_correction_chat.py
+Line: 160
+Type: refactor_suggestion
+
+Comment:
+Use datetime.now(timezone.utc) instead of deprecated datetime.utcnow().
+
+datetime.utcnow() is deprecated since Python 3.12. For consistency with atlas_dashboard_v2.py in this PR, use the timezone-aware alternative.
+
+
+♻️ Suggested fix
+
+-from datetime import datetime
++from datetime import datetime, timezone
+
+         lesson = {
+             "source": "human_correction",
+             "category": "episode_correction",
+             "episode_id": episode_id,
+-            "timestamp": datetime.utcnow().isoformat(),
++            "timestamp": datetime.now(timezone.utc).isoformat(),
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_correction_chat.py at line 160, The timestamp field currently uses the deprecated datetime.utcnow() (seen in the assignment "timestamp": datetime.utcnow().isoformat()); replace it with a timezone-aware call datetime.now(timezone.utc).isoformat() and ensure timezone is imported from datetime (add "from datetime import datetime, timezone" or include timezone in the existing import) so the timestamp is UTC-aware and consistent with atlas_dashboard_v2.py.
+
+
+
+============================================================================
+File: atlas_dynamic_rag.py
+Line: 92 to 113
+Type: potential_issue
+
+Comment:
+Critical bug: scored referenced outside its defining block.
+
+The variable scored is defined on line 95 inside the if lessons: block, but scored.sort() on line 103 and subsequent references on lines 105-106 are at a higher indentation level. If lessons is empty or falsy, this will raise a NameError.
+
+
+
+🐛 Proposed fix
+
+         # 2. Retrieve Policy Lessons (The "Audit Brain")
+         lessons = self._load_all(self.lessons_path)
++        scored = []
+         if lessons:
+-            scored = []
+             for l in lessons:
+                 if l.get("category") in self.universal_categories:
+                     scored.append((1000, l))
+                 else:
+                     text = f"{l.get('question', '')} {l.get('answer', '')}"
+                     scored.append((_score_against_video(text, keywords), l))
+-            
+-        scored.sort(key=lambda x: x[0], reverse=True)
+-        # Use simple slice and handle top items
+-        top_items = scored[:int(max_lessons)]
+-        top = [l for s, l in top_items if s > 0 or l.get("category") in self.universal_categories]
++        
++        if scored:
++            scored.sort(key=lambda x: x[0], reverse=True)
++            # Use simple slice and handle top items
++            top_items = scored[:int(max_lessons)]
++            top = [l for s, l in top_items if s > 0 or l.get("category") in self.universal_categories]
++        else:
++            top = []
+         if top:
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_dynamic_rag.py around lines 92 - 113, The code uses scored outside the if lessons: block which can raise NameError when lessons is falsy; to fix, ensure scored is always defined before it's referenced—initialize scored = [] (e.g., right before the existing if lessons: block) and keep the current population logic that appends using _score_against_video and universal_categories; then the subsequent scored.sort(), top_items, top, and context_parts logic will safely operate on an empty list when no lessons are loaded.
+
+
+
+============================================================================
+File: atlas_triplet_compare.py
+Line: 2175 to 2176
+Type: potential_issue
+
+Comment:
+Dead code: json_followup_retry block never executes due to invalid schema check.
+
+The call to _chat_response_has_required_fields(parsed_preview, None) at line 2175 always returns True (since None is not a dict), making the condition not _chat_response_has_required_fields(...) always False. This means the followup retry logic at lines 2176–2182 is unreachable dead code. 
+
+Unlike _call_gemini_compare_chat_web which validates responses against a schema, this function lacks a response_schema parameter entirely. Either remove the unused retry block, or add response_schema as a function parameter and pass it to the validation check.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_triplet_compare.py around lines 2175 - 2176, The json_followup_retry branch is dead because _chat_response_has_required_fields(parsed_preview, None) always returns True; add a response_schema parameter to this function and use it in the validation call (replace the None with response_schema) so the check becomes meaningful, or if you prefer removal instead: delete the entire json_followup_retry block (the lines setting followup and retry loop) to eliminate unreachable code; locate the json_followup_retry check and the call to _chat_response_has_required_fields (and parsed_preview) to apply the change, and update the function signature and call sites if you add response_schema.
+
+
+
+============================================================================
+File: atlas_web_auto_solver.py
+Line: 11817 to 11838
+Type: potential_issue
+
+Comment:
+The chat fallback prompt and parser disagree on the payload shape.
+
+Both fallback prompts ask Chat for a top-level JSON array, but the result is passed straight into _normalize_segment_plan(), which only accepts a dict with segments. If Chat follows the prompt exactly, the recovery path throws instead of fixing the episode.
+
+
+
+🔧 Minimal fix
+
+-                            chat_payload = chat_payload_result.get("parsed", {})
++                            chat_payload = chat_payload_result.get("parsed", {})
++                            if isinstance(chat_payload, list):
++                                chat_payload = {"operations": [], "segments": chat_payload}
+                             chat_plan = _normalize_segment_plan(chat_payload, segments, cfg=cfg)
+
+
+Apply the same wrapper in both fallback blocks, or change both prompts to request an object with a top-level segments field.
+
+
+
+Also applies to: 12083-12108
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_web_auto_solver.py around lines 11817 - 11838, The fallback chat branch returns a top-level JSON array but _normalize_segment_plan expects a dict with a "segments" key, so ensure the chat payload is normalized before calling _normalize_segment_plan: after obtaining chat_payload_result from _call_gemini_chat_web_on_page and deriving chat_payload, detect if chat_payload is a list and, if so, wrap it into {"segments": chat_payload} (apply the same wrapper in both fallback blocks referenced around the _call_gemini_chat_web_on_page usage and the other fallback at the later range) so _normalize_segment_plan always receives a dict with the segments field.
+
+
+
+============================================================================
+File: atlas_web_auto_solver.py
+Line: 7989 to 7995
+Type: potential_issue
+
+Comment:
+The full-video-first branch is unreachable.
+
+should_chunk is only true when chunking_enabled is true, but full_video_first is computed from not chunking_enabled. The new single-request-first fallback never activates.
+
+
+
+🔧 Minimal fix
+
+-    full_video_first = not chunking_enabled and bool(
++    full_video_first = chunking_enabled and bool(
+         _cfg_get(cfg, "run.segment_chunking_fallback_on_full_fail", True)
+     )
+
+
+
+
+Also applies to: 8007-8015
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_web_auto_solver.py around lines 7989 - 7995, The branch never runs because full_video_first is set to not chunking_enabled while should_chunk is only true when chunking_enabled is true; change the predicate so full-video-first activates when chunking is enabled and the config allows fallback: compute full_video_first using chunking_enabled (not its negation) together with _cfg_get(cfg, "run.segment_chunking_fallback_on_full_fail", True) and/or should_chunk as appropriate, then keep the existing block that prints and sets should_chunk = False; apply the same fix to the duplicate block around the other occurrence (the variables full_video_first, should_chunk, chunking_enabled, and _cfg_get).
+
+
+
+============================================================================
+File: atlas_web_auto_solver.py
+Line: 10567 to 10569
+Type: potential_issue
+
+Comment:
+Don't hard-disable require_action_verb_start here.
+
+This makes the YAML flag impossible to turn back on for any account, even though the validator still consults it later. If the default should change, set a default here instead of rewriting explicit config.
+
+
+
+🔧 Safer defaulting
+
+-    if bool(run.get("require_action_verb_start", True)):
+-        run["require_action_verb_start"] = False
+-        print("[policy] run.require_action_verb_start forced OFF by user request.")
++    run.setdefault("require_action_verb_start", False)
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_web_auto_solver.py around lines 10567 - 10569, The current code force-writes run["require_action_verb_start"] = False which prevents any explicit YAML/config setting from ever being honored; change it to only apply a default when the key is missing (e.g., if "require_action_verb_start" not in run: run["require_action_verb_start"] = False) and only log that a default was applied, leaving any explicit value intact so the later validator that reads require_action_verb_start will see the user's choice.
+
+
+
+============================================================================
+File: atlas_web_auto_solver.py
+Line: 10639 to 10642
+Type: potential_issue
+
+Comment:
+Only force headless on Linux.
+
+os.name != "nt" also matches macOS, where DISPLAY is normally unset. Headed runs there will be downgraded unexpectedly and can break manual login/profile workflows.
+
+
+
+🔧 Minimal fix
+
+-    if os.name != "nt" and not headless and not os.environ.get("DISPLAY", "").strip():
++    if sys.platform.startswith("linux") and not headless and not os.environ.get("DISPLAY", "").strip():
+         print("[browser] DISPLAY is not set on Linux; forcing headless mode for this run.")
+         headless = True
+
+
+
+Add import sys near the imports.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_web_auto_solver.py around lines 10639 - 10642, The conditional that forces headless uses os.name != "nt" which also matches macOS; update it to restrict to Linux (e.g., check sys.platform.startswith("linux")) so only Linux with no DISPLAY forces headless, and add import sys to the module imports; modify the branch around the headless/ DISPLAY check (the block that reads/sets headless) to use the Linux-specific platform check instead of os.name != "nt".
+
+
+
+============================================================================
+File: atlas_web_auto_solver.py
+Line: 846 to 852
+Type: potential_issue
+
+Comment:
+Remove the Atlas email from logs.
+
+Even partially masked email addresses are still user identifiers, and this runs on every auth resolution.
+
+
+
+🧹 Minimal fix
+
+ def _resolve_atlas_email(cfg: Dict[str, Any]) -> str:
+     res = (
+         str(_cfg_get(cfg, "atlas.email", "")).strip()
+         or os.environ.get("ATLAS_LOGIN_EMAIL", "").strip()
+         or os.environ.get("ATLAS_EMAIL", "").strip()
+     )
+-    print(f"[debug] _resolve_atlas_email result: {res[:4]}...{res[-4:] if len(res) > 8 else ''}")
+     return res
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_web_auto_solver.py around lines 846 - 852, The debug print in _resolve_atlas_email leaks user emails; remove the print statement (or replace it with a non-identifying debug log such as “_resolve_atlas_email returned a value” or reporting only the length) so no part of the email is written to stdout/stderr. Locate the _resolve_atlas_email function and delete or alter the print(f"[debug] _resolve_atlas_email result: ...") call accordingly.
+
+
+
+============================================================================
+File: atlas_web_auto_solver.py
+Line: 9137 to 9143
+Type: potential_issue
+
+Comment:
+Dry-run merge simulation uses the wrong neighbor.
+
+The live flow emits merge ops in descending order, which only makes sense when a merge consumes the current row into the previous one. This helper removes the next row whenever one exists, so dry-run validation can diverge from execute mode.
+
+
+
+🔧 Minimal fix
+
+         elif action == "merge":
+-            if list_idx + 1 = 0:
+-                prev_seg = segs.pop(list_idx)
+-                segs[list_idx - 1]["end_sec"] = prev_seg.get("end_sec", segs[list_idx - 1].get("end_sec"))
++            if list_idx - 1 >= 0:
++                current_seg = segs.pop(list_idx)
++                segs[list_idx - 1]["end_sec"] = current_seg.get("end_sec", segs[list_idx - 1].get("end_sec"))
++            elif list_idx + 1
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_web_auto_solver.py around lines 9137 - 9143, The dry-run merge branch currently pops the next segment (next_seg) when handling a "merge" at list_idx, but live execution merges the current segment into the previous one (descending order); change the logic in the action == "merge" block so it prefers merging into the previous segment: if list_idx - 1 >= 0, pop the previous segment (use prev = segs.pop(list_idx - 1)) and set segs[list_idx - 1]["end_sec"] (or the updated previous index after pop) to the current segment's end_sec via segs[list_idx - 1].get("end_sec", current.get("end_sec")), otherwise fall back to popping the current segment and updating the next segment's end_sec (the existing next-seg logic). Ensure you update the correct indices after popping so segs and end_sec assignments reference the intended segments (symbols: action == "merge", segs, list_idx, next_seg, prev_seg).
+
+
+
+============================================================================
+File: atlas_web_auto_solver.py
+Line: 794 to 805
+Type: potential_issue
+
+Comment:
+Add file_uri translation to _translate_payload_for_vertex().
+
+_translate_payload_for_vertex() maps file_data and mime_type, but does not handle file_uri. When the new GCS-backed video path creates payloads with {"file_data": {"mime_type": "video/mp4", "file_uri": gcs_uri}}, this untranslated field remains in snake_case. The Vertex REST API expects fileUri (camelCase), so requests will fail.
+
+
+Fix
+
+ def _translate_payload_for_vertex(value: Any) -> Any:
+     if isinstance(value, dict):
+         out: Dict[str, Any] = {}
+         for key, item in value.items():
+             mapped = key
+             if key == "inline_data":
+                 mapped = "inlineData"
+             elif key == "file_data":
+                 mapped = "fileData"
+             elif key == "mime_type":
+                 mapped = "mimeType"
++            elif key == "file_uri":
++                mapped = "fileUri"
+             out[mapped] = _translate_payload_for_vertex(item)
+         return out
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_web_auto_solver.py around lines 794 - 805, The _translate_payload_for_vertex function currently maps "inline_data"->"inlineData", "file_data"->"fileData", and "mime_type"->"mimeType" but omits "file_uri"; update _translate_payload_for_vertex to also map the key "file_uri" to "fileUri" (alongside the existing key checks for "inline_data", "file_data", and "mime_type") so nested payloads like {"file_data": {"mime_type": "...", "file_uri": ...}} are translated to camelCase before sending to the Vertex REST API.
+
+
+
+Review completed: 24 findings ✔

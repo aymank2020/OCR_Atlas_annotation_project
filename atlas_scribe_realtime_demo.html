@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Atlas Scribe Realtime Demo</title>
+  <style>
+    :root{--bg:#071019;--panel:rgba(10,20,31,.88);--line:rgba(95,213,171,.22);--line2:rgba(95,213,171,.42);--text:#eef8f4;--muted:#9db7ad;--accent:#6cf2bc;--danger:#ff7f94;--font:"Bahnschrift","Segoe UI Variable","Trebuchet MS",sans-serif;--mono:"Cascadia Code","Consolas",monospace}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--text);font-family:var(--font);background:radial-gradient(circle at top left,rgba(34,109,86,.28),transparent 24%),linear-gradient(180deg,#081019,#050a10)}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(108,242,188,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(108,242,188,.05) 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(180deg,rgba(255,255,255,.5),transparent 88%)}
+    .shell{width:min(1360px,calc(100vw - 22px));margin:14px auto 24px;display:grid;gap:16px}.hero,.layout{display:grid;gap:16px}.hero{grid-template-columns:1.25fr .75fr}.layout{grid-template-columns:.95fr 1.05fr}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:22px;box-shadow:0 18px 48px rgba(0,0,0,.34);backdrop-filter:blur(18px)}.hero-main{padding:22px 24px;position:relative;overflow:hidden}.hero-main::after{content:"";position:absolute;inset:auto -10% -34% 48%;height:320px;background:radial-gradient(circle,rgba(108,242,188,.22),transparent 72%)}
+    .eyebrow,.pill{display:inline-flex;align-items:center;gap:8px;border-radius:999px}.eyebrow{padding:6px 10px;background:rgba(108,242,188,.1);border:1px solid var(--line2);color:var(--accent);font-size:12px;letter-spacing:.12em;text-transform:uppercase}h1{margin:14px 0 10px;font-size:clamp(28px,4vw,56px);line-height:.94;letter-spacing:-.04em;max-width:12ch}.copy{max-width:70ch;color:var(--muted);line-height:1.6;margin:0}
+    .pill-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.pill{padding:10px 12px;border:1px solid var(--line);background:rgba(255,255,255,.03);font-size:13px}.dot{width:10px;height:10px;border-radius:50%;background:#ffd46f}.dot.live{background:var(--accent)}.dot.err{background:var(--danger)}
+    .hero-side,.stack{display:grid;gap:14px}.hero-side{padding:18px}.card{padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05)}.label{color:var(--muted);font-size:12px;letter-spacing:.12em;text-transform:uppercase}.value{margin-top:7px;font:700 24px var(--mono)}
+    .section{padding:18px}.head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.title{margin:0;font-size:18px}.note{margin:0;color:var(--muted);font-size:13px}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}label{display:grid;gap:8px;color:var(--muted);font-size:13px}input,select,button{font:inherit}input,select{width:100%;padding:12px 13px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:#030a10;color:var(--text)}input:focus,select:focus{outline:none;border-color:var(--line2);box-shadow:0 0 0 3px rgba(108,242,188,.12)}
+    .toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px;border:1px solid rgba(255,255,255,.08);background:#030a10;border-radius:14px}.toggle input{width:18px;height:18px;margin:0;accent-color:var(--accent)}.btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
+    button{border:0;border-radius:16px;padding:13px 18px;cursor:pointer;transition:transform .18s ease,opacity .18s ease}button:hover:not(:disabled){transform:translateY(-1px)}button:disabled{opacity:.45;cursor:not-allowed}.primary{background:linear-gradient(135deg,#7affc4,#1faa7c);color:#04130d;font-weight:700}.secondary{background:rgba(255,255,255,.06);color:var(--text);border:1px solid rgba(255,255,255,.08)}.danger{background:rgba(255,127,148,.16);color:#ffd9df;border:1px solid rgba(255,127,148,.24)}
+    .ghost{min-height:120px;padding:16px 18px;border-radius:18px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);display:grid;gap:12px}.gtext{min-height:54px;font-size:24px;line-height:1.35}.dim{opacity:.62;font-style:italic}.meta{display:flex;flex-wrap:wrap;gap:8px;color:var(--muted);font:12px var(--mono)}
+    .feed,.log{display:grid;gap:12px}.feed{max-height:620px;overflow:auto;padding-right:4px}.entry,.logline{padding:12px 14px;border-radius:18px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}.entryhead{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font:12px var(--mono)}.entrytext{margin-top:10px;font-size:18px;line-height:1.5}.entrytr{margin-top:10px;padding-top:8px;border-top:1px dashed rgba(108,242,188,.2);color:#cbfff2;line-height:1.55}.hint{color:var(--muted);font-size:13px;line-height:1.6}
+    @media (max-width:1080px){.hero,.layout{grid-template-columns:1fr}}@media (max-width:720px){.shell{width:min(100vw - 14px,1360px)}.grid{grid-template-columns:1fr}.gtext{font-size:20px}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <article class="panel hero-main">
+        <div class="eyebrow">Atlas Scribe / Realtime Bridge</div>
+        <h1>Live voice. Live ghost text. Live translation.</h1>
+        <p class="copy">This page streams microphone audio to the Atlas FastAPI bridge in 40ms PCM chunks, forwards it to Deepgram over WebSocket, and paints interim and final text back into the browser with optional Gemini translation.</p>
+        <div class="pill-row">
+          <div class="pill"><span class="dot" id="statusDot"></span><span id="statusLabel">Idle</span></div>
+          <div class="pill">Provider <strong id="providerBadge">deepgram</strong></div>
+          <div class="pill">Bridge <strong id="bridgeVersion">loading</strong></div>
+          <div class="pill">Chunks <strong>40ms</strong></div>
+        </div>
+      </article>
+      <aside class="panel hero-side">
+        <div class="card"><div class="label">Frames Sent</div><div class="value" id="framesSent">0</div></div>
+        <div class="card"><div class="label">Final Segments</div><div class="value" id="finalSegments">0</div></div>
+        <div class="card"><div class="label">Audio Rate</div><div class="value" id="audioRate">--</div></div>
+        <div class="card"><div class="label">Translation</div><div class="value" id="translationState">Off</div></div>
+      </aside>
+    </section>
+
+    <section class="layout">
+      <div class="stack">
+        <section class="panel section">
+          <div class="head"><div><h2 class="title">Capture Controls</h2><p class="note">Browser microphone -> FastAPI bridge -> Deepgram -> interim UI -> optional Gemini translation</p></div></div>
+          <div class="grid">
+            <label>STT Model<select id="modelSelect"><option value="nova-3" selected>Deepgram Nova-3</option><option value="nova-2">Deepgram Nova-2</option></select></label>
+            <label>Spoken Language Hint<input id="languageInput" type="text" placeholder="en or ar" /></label>
+            <label>Translation Target<select id="targetLanguageSelect"><option value="ar" selected>Arabic</option><option value="en">English</option><option value="fr">French</option><option value="de">German</option><option value="tr">Turkish</option></select></label>
+            <label>Translation Model<input id="translationModelInput" type="text" value="gemini-2.5-flash" /></label>
+            <div class="toggle"><span>Enable live translation</span><input id="translationToggle" type="checkbox" checked /></div>
+            <div class="toggle"><span>Browser input controls</span><span>AEC + NS + AGC</span></div>
+          </div>
+          <div class="btns">
+            <button class="primary" id="startButton">Start Live Capture</button>
+            <button class="danger" id="stopButton" disabled>Stop</button>
+            <button class="secondary" id="clearButton">Clear Feed</button>
+          </div>
+        </section>
+
+        <section class="panel section">
+          <div class="head"><div><h2 class="title">Ghost Writing</h2><p class="note">Interim text stays soft until the provider confirms the final segment.</p></div><div class="pill"><span id="interimState">awaiting speech</span></div></div>
+          <div class="stack">
+            <div class="ghost">
+              <div class="gtext dim" id="interimTranscript">Speak to begin the live stream.</div>
+              <div class="meta"><span id="interimMetaProvider">provider: deepgram</span><span id="interimMetaLang">lang: --</span><span id="interimMetaConfidence">confidence: --</span><span id="interimMetaEvent">event: --</span></div>
+            </div>
+            <div class="ghost">
+              <div class="gtext dim" id="interimTranslation">Live translation will appear here when enabled.</div>
+              <div class="meta"><span id="translationMeta">target: ar</span></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="stack">
+        <section class="panel section">
+          <div class="head"><div><h2 class="title">Finalized Transcript Feed</h2><p class="note">Each final segment lands here, and its translation attaches when the second pass completes.</p></div></div>
+          <div class="feed" id="finalFeed"></div>
+          <p class="hint">If `GEMINI_API_KEY` is missing, transcript delivery still works and only translation rows remain empty.</p>
+        </section>
+
+        <section class="panel section">
+          <div class="head"><div><h2 class="title">Bridge Log</h2><p class="note">Connection lifecycle, provider events, and warnings from the browser bridge.</p></div></div>
+          <div class="log" id="eventLog"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const s={ws:null,stream:null,ctx:null,src:null,node:null,sink:null,isOn:false,keepalive:null,frames:0,finals:0,finalNodes:new Map(),lastInterimId:null};
+    const el={
+      statusDot:document.getElementById("statusDot"),
+      statusLabel:document.getElementById("statusLabel"),
+      providerBadge:document.getElementById("providerBadge"),
+      bridgeVersion:document.getElementById("bridgeVersion"),
+      framesSent:document.getElementById("framesSent"),
+      finalSegments:document.getElementById("finalSegments"),
+      audioRate:document.getElementById("audioRate"),
+      translationState:document.getElementById("translationState"),
+      start:document.getElementById("startButton"),
+      stop:document.getElementById("stopButton"),
+      clear:document.getElementById("clearButton"),
+      model:document.getElementById("modelSelect"),
+      lang:document.getElementById("languageInput"),
+      target:document.getElementById("targetLanguageSelect"),
+      trModel:document.getElementById("translationModelInput"),
+      trToggle:document.getElementById("translationToggle"),
+      interimState:document.getElementById("interimState"),
+      interimTranscript:document.getElementById("interimTranscript"),
+      interimTranslation:document.getElementById("interimTranslation"),
+      metaProvider:document.getElementById("interimMetaProvider"),
+      metaLang:document.getElementById("interimMetaLang"),
+      metaConfidence:document.getElementById("interimMetaConfidence"),
+      metaEvent:document.getElementById("interimMetaEvent"),
+      trMeta:document.getElementById("translationMeta"),
+      feed:document.getElementById("finalFeed"),
+      log:document.getElementById("eventLog")
+    };
+
+    function log(msg,tone="info"){const d=document.createElement("div");d.className="logline";d.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`;if(tone==="error"){d.style.borderColor="rgba(255,127,148,.28)";d.style.color="#ffd3db"}if(tone==="success"){d.style.borderColor="rgba(108,242,188,.24)";d.style.color="#dbfff3"}el.log.prepend(d);while(el.log.childElementCount>24)el.log.removeChild(el.log.lastElementChild)}
+    function status(label,mode="idle"){el.statusLabel.textContent=label;el.statusDot.className="dot";if(mode==="live")el.statusDot.classList.add("live");if(mode==="error")el.statusDot.classList.add("err")}
+    function setGhost(text,dim=true){el.interimTranscript.textContent=text;el.interimTranscript.classList.toggle("dim",dim)}
+    function setGhostTr(text,dim=true){el.interimTranslation.textContent=text;el.interimTranslation.classList.toggle("dim",dim)}
+    function resetLive(){setGhost("Speak to begin the live stream.",true);setGhostTr("Live translation will appear here when enabled.",true);el.interimState.textContent="awaiting speech";el.metaProvider.textContent="provider: deepgram";el.metaLang.textContent="lang: --";el.metaConfidence.textContent="confidence: --";el.metaEvent.textContent="event: --";el.trMeta.textContent=`target: ${el.target.value}`}
+    function clearAll(){el.feed.replaceChildren();el.log.replaceChildren();s.finalNodes.clear();s.finals=0;s.frames=0;s.lastInterimId=null;el.framesSent.textContent="0";el.finalSegments.textContent="0";resetLive();log("Cleared local browser feed.")}
+    async function health(){try{const r=await fetch("/health");const p=await r.json();el.bridgeVersion.textContent=p.version||"ready";log(`Health loaded. Deepgram configured: ${p.deepgram_configured}. Gemini configured: ${p.gemini_configured}.`)}catch(e){el.bridgeVersion.textContent="unknown";log(`Health probe failed: ${e.message}`,"error")}}
+    function socketUrl(){const scheme=location.protocol==="https:"?"wss":"ws";return `${scheme}://${location.host}/ws/realtime`}
+    function startPayload(){return{type:"start",provider:"deepgram",config:{model:el.model.value,sample_rate:16000,encoding:"linear16",interim_results:true,endpointing_ms:250,utterance_end_ms:900,language:el.lang.value.trim(),translation:{enabled:el.trToggle.checked,target_language:el.target.value,model:el.trModel.value.trim()||"gemini-2.5-flash"}}}}
+    function pcm(frame){const out=new Int16Array(frame.length);for(let i=0;i<frame.length;i+=1){const x=Math.max(-1,Math.min(1,frame[i]));out[i]=x<0?x*32768:x*32767}return out.buffer}
+    async function openWs(){return await new Promise((resolve,reject)=>{const ws=new WebSocket(socketUrl());ws.binaryType="arraybuffer";ws.onopen=()=>{ws.send(JSON.stringify(startPayload()));resolve(ws)};ws.onerror=()=>reject(new Error("Unable to open realtime WebSocket."))})}
+    function keepalive(){if(s.keepalive)clearInterval(s.keepalive);s.keepalive=setInterval(()=>{if(s.ws&&s.ws.readyState===WebSocket.OPEN)s.ws.send(JSON.stringify({type:"keepalive"}))},8000)}
+    async function captureGraph(){
+      s.stream=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
+      s.ctx=new AudioContext({latencyHint:"interactive"});el.audioRate.textContent=`${s.ctx.sampleRate} Hz`;
+      const code=`class AtlasMicChunker extends AudioWorkletProcessor{constructor(){super();this.targetRate=16000;this.chunkSamples=640;this.pending=[];this.phase=0}process(inputs){const input=inputs[0];if(!input||!input[0]||input[0].length===0)return true;const channel=input[0];const ratio=sampleRate/this.targetRate;let cursor=this.phase;while(cursor<channel.length){const start=Math.floor(cursor);const end=Math.min(Math.floor(cursor+ratio),channel.length);let total=0;let count=0;for(let i=start;i<end;i+=1){total+=channel[i];count+=1}const sample=count>0?total/count:channel[start]||0;this.pending.push(sample);if(this.pending.length>=this.chunkSamples){const chunk=new Float32Array(this.pending.slice(0,this.chunkSamples));this.pending=this.pending.slice(this.chunkSamples);this.port.postMessage(chunk,[chunk.buffer])}cursor+=ratio}this.phase=cursor-channel.length;return true}}registerProcessor("atlas-mic-chunker",AtlasMicChunker);`;
+      const url=URL.createObjectURL(new Blob([code],{type:"application/javascript"}));await s.ctx.audioWorklet.addModule(url);URL.revokeObjectURL(url);
+      s.src=s.ctx.createMediaStreamSource(s.stream);s.node=new AudioWorkletNode(s.ctx,"atlas-mic-chunker");s.sink=s.ctx.createGain();s.sink.gain.value=0;
+      s.node.port.onmessage=(event)=>{if(!s.ws||s.ws.readyState!==WebSocket.OPEN)return;const frame=event.data instanceof Float32Array?event.data:new Float32Array(event.data);s.ws.send(pcm(frame));s.frames+=1;el.framesSent.textContent=String(s.frames)};
+      s.src.connect(s.node);s.node.connect(s.sink);s.sink.connect(s.ctx.destination);
+    }
+    function bindWs(ws){
+      ws.onmessage=(event)=>handle(JSON.parse(event.data));
+      ws.onclose=()=>{if(s.isOn){status("Disconnected","error");log("WebSocket closed by the bridge.","error")}};
+      ws.onerror=()=>log("WebSocket stream error.","error");
+    }
+    function entry(payload){
+      const article=document.createElement("article");article.className="entry";
+      const head=document.createElement("div");head.className="entryhead";head.textContent=`${payload.provider||"provider"} / ${payload.language||"--"} / ${Number(payload.duration_sec||0).toFixed(2)}s`;
+      const text=document.createElement("div");text.className="entrytext";text.textContent=payload.text;
+      const tr=document.createElement("div");tr.className="entrytr";
+      article.append(head,text,tr);el.feed.prepend(article);s.finalNodes.set(payload.event_id,tr);
+    }
+    function handleTranscript(payload){
+      el.metaProvider.textContent=`provider: ${payload.provider||"--"}`;el.metaLang.textContent=`lang: ${payload.language||"--"}`;el.metaConfidence.textContent=`confidence: ${Number(payload.confidence||0).toFixed(2)}`;el.metaEvent.textContent=`event: ${payload.event_type||"--"}`;
+      if(!payload.text){el.interimState.textContent=payload.event_type||"waiting";return}
+      if(payload.is_final){s.finals+=1;el.finalSegments.textContent=String(s.finals);el.interimState.textContent="segment finalized";setGhost("Waiting for the next phrase...",true);setGhostTr(el.trToggle.checked?"Waiting for translation on the next live phrase...":"Live translation is disabled for this session.",true);entry(payload);return}
+      s.lastInterimId=payload.event_id;el.interimState.textContent="capturing interim speech";setGhost(payload.text,false);setGhostTr(el.trToggle.checked?"Translating live interim...":"Live translation is disabled for this session.",true);
+    }
+    function handle(payload){
+      if(payload.type==="ready"){status("Live","live");el.providerBadge.textContent=payload.provider||"deepgram";el.translationState.textContent=payload.translation_enabled?`On / ${payload.translation_target_language}`:"Off";el.trMeta.textContent=`target: ${payload.translation_target_language||el.target.value}`;log(`Bridge ready. Provider=${payload.provider}, translation=${payload.translation_enabled}, configured=${payload.translation_configured}.`,"success");return}
+      if(payload.type==="translation"){if(payload.is_final){const node=s.finalNodes.get(payload.event_id);if(node)node.textContent=payload.translation}else if(payload.event_id===s.lastInterimId){setGhostTr(payload.translation,false)}return}
+      if(payload.type==="transcript"){handleTranscript(payload);return}
+      if(payload.type==="ack"){log(`Bridge acknowledged ${payload.action}.`);return}
+      if(payload.type==="pong")return;
+      if(payload.type==="warn"){log(payload.message||"Unknown warning.","error");return}
+      if(payload.type==="error"){status("Error","error");log(payload.message||"Unknown bridge error.","error")}
+    }
+    async function start(){
+      if(s.isOn)return;
+      if(!navigator.mediaDevices?.getUserMedia){log("Browser microphone capture is not supported here.","error");return}
+      resetLive();el.trMeta.textContent=`target: ${el.target.value}`;el.translationState.textContent=el.trToggle.checked?`On / ${el.target.value}`:"Off";status("Connecting");el.start.disabled=true;
+      try{s.ws=await openWs();bindWs(s.ws);keepalive();await captureGraph();s.isOn=true;el.stop.disabled=false;log("Microphone capture started and audio chunking is active.","success")}catch(e){status("Error","error");el.start.disabled=false;log(`Start failed: ${e.message}`,"error");await stop(true)}
+    }
+    async function stop(quiet=false){
+      if(s.keepalive){clearInterval(s.keepalive);s.keepalive=null}
+      if(s.ws&&s.ws.readyState===WebSocket.OPEN){try{s.ws.send(JSON.stringify({type:"finalize"}));await new Promise(r=>setTimeout(r,150));s.ws.send(JSON.stringify({type:"close"}))}catch(e){if(!quiet)log(`Stop handshake warning: ${e.message}`,"error")}}
+      if(s.node){s.node.port.onmessage=null;try{s.node.disconnect()}catch(e){}s.node=null}if(s.src){try{s.src.disconnect()}catch(e){}s.src=null}if(s.sink){try{s.sink.disconnect()}catch(e){}s.sink=null}
+      if(s.ctx){try{await s.ctx.close()}catch(e){}s.ctx=null}if(s.stream){s.stream.getTracks().forEach(track=>track.stop());s.stream=null}if(s.ws){try{s.ws.close()}catch(e){}s.ws=null}
+      s.isOn=false;el.start.disabled=false;el.stop.disabled=true;if(!quiet){status("Idle");log("Stopped browser capture and closed the bridge session.")}
+    }
+    el.start.addEventListener("click",start);el.stop.addEventListener("click",()=>stop());el.clear.addEventListener("click",clearAll);window.addEventListener("beforeunload",()=>stop(true));
+    resetLive();health();
+  </script>
+</body>
+</html>

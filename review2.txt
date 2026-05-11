@@ -1,0 +1,1163 @@
+Starting CodeRabbit review in plain text mode...
+
+Connecting to review service
+Setting up
+Analyzing
+Reviewing
+
+============================================================================
+File: review1.txt
+Line: 19
+Type: potential_issue
+
+Comment:
+Incomplete grep command reduces finding clarity.
+
+The proposed portable alternative is truncated mid-expression. The line shows:
+
+FOLDER_ID=$(echo "$DRIVE_LINK" | grep -oP '(?
+
+
+This incomplete regex pattern makes it difficult to understand the full proposed fix. The same truncation appears at line 238 and is ironically the subject of the first finding in this report (lines 13-22).
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @review1.txt at line 19, The FOLDER_ID assignment using grep is truncated and incomplete (see the FOLDER_ID=$(echo "$DRIVE_LINK" | grep -oP '...?') use of grep -oP), so restore the full regex to correctly extract the Google Drive folder ID from DRIVE_LINK and make it portable: replace the PCRE-only grep -oP with a POSIX-friendly alternative (e.g., grep -oE, sed or awk) and implement the completed extraction logic in the FOLDER_ID assignment and the other identical occurrence; ensure you update the grep invocation and pattern referenced by FOLDER_ID and DRIVE_LINK so the command reliably returns the folder ID.
+
+
+
+============================================================================
+File: review1.txt
+Line: 635 to 641
+Type: potential_issue
+
+Comment:
+Incomplete proposed fix in merge simulation finding.
+
+The diff block ends with an incomplete elif statement:
++            elif list_idx + 1
+
+
+This truncation leaves the conditional incomplete and the fix non-actionable.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @review1.txt around lines 635 - 641, The conditional block is truncated and leaves an incomplete elif; fix the logic around list_idx/segs by replacing the incomplete block so it handles both removing a segment when there is a previous segment and when there is a next segment: use "if list_idx - 1 >= 0:" to pop current_seg = segs.pop(list_idx) and update segs[list_idx - 1]["end_sec"] from current_seg.get("end_sec", ...), and use "elif list_idx + 1 < len(segs):" to pop current_seg = segs.pop(list_idx) and update segs[list_idx]["start_sec"] from current_seg.get("start_sec", ...); remove the old incorrect "if list_idx + 1 = 0" and the dangling elif so the branch is complete and logical.
+
+
+
+============================================================================
+File: atlas_drive_indexer.py
+Line: 21
+Type: potential_issue
+
+Comment:
+Use timezone-aware datetime instead of deprecated datetime.utcnow().
+
+datetime.utcnow() is deprecated in Python 3.12+. Import timezone and use datetime.now(timezone.utc) for consistent timezone-aware timestamps.
+
+
+🔧 Proposed fix
+
+-from datetime import datetime
++from datetime import datetime, timezone
+
+
+-                "indexed_at": datetime.utcnow().isoformat(),
++                "indexed_at": datetime.now(timezone.utc).isoformat(),
+
+
+
+
+
+
+Also applies to: 185-185
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_drive_indexer.py at line 21, Replace use of the deprecated naive datetime.utcnow() with timezone-aware datetimes: update the import from "from datetime import datetime" to include timezone (or import datetime and timezone) and change all occurrences of datetime.utcnow() (e.g., at the import site and the call around line where datetime.utcnow() is used, plus the second occurrence around line 185) to datetime.now(timezone.utc) so timestamps are timezone-aware and consistent.
+
+
+
+============================================================================
+File: atlas_web_auto_solver.py
+Line: 11808 to 11810
+Type: potential_issue
+
+Comment:
+Remove no-op f-strings to fix lint-breaking F541 errors.
+
+These lines use f"..." without interpolation, which fails Ruff (F541) in strict pipelines.
+
+
+
+
+Suggested fix
+
+-                            error_text = f"The primary API model generated a segment plan with {len(current_raw_errors)} policy errors.\n"
+-                            error_text += f"Errors:\n" + "\n".join(f"- {e}" for e in current_raw_errors) + "\n\n"
++                            error_text = f"The primary API model generated a segment plan with {len(current_raw_errors)} policy errors.\n"
++                            error_text += "Errors:\n" + "\n".join(f"- {e}" for e in current_raw_errors) + "\n\n"
+...
+-                            print(f"[policy] API pass was error-free. Doing unconditional hybrid Vertex Chat review for 100% quality...")
++                            print("[policy] API pass was error-free. Doing unconditional hybrid Vertex Chat review for 100% quality...")
+...
+-                        print(f"[policy] UI live check failed. Attempting hybrid Vertex Chat fallback + merge...")
++                        print("[policy] UI live check failed. Attempting hybrid Vertex Chat fallback + merge...")
+...
+-                                f"The primary API model generated a segment plan, but the live UI submit guard rejected it.\n"
+-                                f"Rejection Reasons:\n" + "\n".join(f"- {e}" for e in result.get("submit_guard_reasons", [])) + "\n\n"
++                                "The primary API model generated a segment plan, but the live UI submit guard rejected it.\n"
++                                "Rejection Reasons:\n" + "\n".join(f"- {e}" for e in result.get("submit_guard_reasons", [])) + "\n\n"
+
+
+
+
+Also applies to: 12081-12081, 12086-12087
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_web_auto_solver.py around lines 11808 - 11810, The lint break is caused by no-op f-strings; replace f"Errors:\n" and any other f-strings with no interpolation (e.g., the print call print(f"[policy] API pass was error-free...")) with plain string literals, leaving the rest of the expression intact (refer to the error_text concatenation that uses current_raw_errors and the print statement that logs the policy message); apply the same change at the other occurrences noted around current_raw_errors and the policy print so no f-strings remain without interpolation.
+
+
+
+============================================================================
+File: atlas_drive_indexer.py
+Line: 197 to 201
+Type: potential_issue
+
+Comment:
+Hardcoded default folder ID may be unintentional.
+
+The default --folder-id value "1e85SR-tY2PC6Q-LlkUOf2JllMxiIE4ys" appears to be a real Google Drive folder ID. If this is a development/test folder, consider removing the default or documenting it clearly. Shipping with a hardcoded folder ID could cause confusion or unintended access attempts.
+
+
+🔧 Suggested change
+
+     parser.add_argument(
+         "--folder-id",
+-        default="1e85SR-tY2PC6Q-LlkUOf2JllMxiIE4ys",
+-        help="Google Drive folder ID",
++        required=True,
++        help="Google Drive folder ID (required)",
+     )
+
+
+Or if a default is desired, use an environment variable:
+default=os.environ.get("ATLAS_DRIVE_FOLDER_ID", ""),
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_drive_indexer.py around lines 197 - 201, The parser.add_argument call for "--folder-id" currently uses a hardcoded Google Drive ID; replace this by removing the hardcoded default or sourcing it from an environment variable to avoid shipping a real folder ID. Update the parser.add_argument("--folder-id", ...) in atlas_drive_indexer.py to set default to an empty string or to os.environ.get("ATLAS_DRIVE_FOLDER_ID", "") and add a brief help note indicating it can be provided via env var; ensure to import os if you choose the environment-variable option.
+
+
+
+============================================================================
+File: vertex_create_cache.py
+Line: 263 to 266
+Type: potential_issue
+
+Comment:
+Unhandled JSONDecodeError on success response.
+
+If the API returns HTTP 200 but the body is not valid JSON, json.loads(text) will raise an unhandled json.JSONDecodeError. Consider wrapping in try/except.
+
+
+🛡️ Proposed fix
+
+     print("HTTP", status)
+     if status != 200:
+         print(text[:4000])
+         raise SystemExit(1)
+
+-    data = json.loads(text)
++    try:
++        data = json.loads(text)
++    except json.JSONDecodeError as e:
++        print(f"[error] Failed to parse response JSON: {e}")
++        print(text[:4000])
++        raise SystemExit(1)
+     print("CACHE_NAME=", data.get("name", ""))
+     print("LOCATION_USED=", used_location)
+     print(json.dumps(data, ensure_ascii=False, indent=2)[:4000])
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @vertex_create_cache.py around lines 263 - 266, Wrap the json.loads(text) call in a try/except that catches json.JSONDecodeError, so the code that assigns to data and the subsequent prints ("CACHE_NAME=", "LOCATION_USED=", json.dumps(...)) won't crash on a non-JSON 200 response; on exception log the raw text and the decode error (or print it consistently with the existing logging pattern), set data to a safe fallback (e.g., {}), and proceed or return/raise a clear error as appropriate. The change should target the json.loads(text) usage and handling of the data variable and prints in vertex_create_cache.py.
+
+
+
+============================================================================
+File: atlas_correction_chat.py
+Line: 73 to 79
+Type: potential_issue
+
+Comment:
+Exit code on abort should indicate non-success.
+
+_prompt_user exits with code 0 on EOFError/KeyboardInterrupt, but abort is not a success. Consider using sys.exit(1) or a distinct exit code for user abort, unless downstream tooling requires 0.
+
+
+
+🛠️ Suggested fix
+
+     except (EOFError, KeyboardInterrupt):
+         print("\n[correction] Aborted by user.")
+-        sys.exit(0)
++        sys.exit(130)  # Standard exit code for SIGINT (128 + 2)
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_correction_chat.py around lines 73 - 79, The _prompt_user function currently calls sys.exit(0) on EOFError/KeyboardInterrupt which signals success; change that to a non-zero exit code (e.g., sys.exit(1) or another distinct code) so user aborts are treated as failures. Update the except block inside _prompt_user to call sys.exit with the chosen non-zero code and keep the existing abort message via print() to preserve UX.
+
+
+
+============================================================================
+File: full_review.md
+Line: 54 to 58
+Type: refactor_suggestion
+
+Comment:
+Clarify the target audience: human or machine?
+
+Each finding includes a "Prompt for AI Agent:" section with detailed remediation instructions. This creates ambiguity:
+
+- If this file is for human consumption: The verbose AI prompts are redundant with the "Comment" sections and add noise
+- If this file is for automation: Plain markdown is not ideal; consider structured formats like JSON or YAML for reliable parsing
+
+The current format falls between both use cases, making it harder to maintain and use effectively.
+
+
+
+Recommendations:
+
+For human readers:
+- Remove the "Prompt for AI Agent" sections
+- Keep only the "Comment" and "Proposed fix" sections
+- Add a summary table at the top linking to each finding
+
+For automation:
+- Convert to structured JSON/YAML
+- Store in a dedicated automation directory (e.g., .coderabbit/findings/)
+- Add a schema definition
+- Include metadata (scan date, tool version, commit hash)
+
+For both:
+- Link findings to specific commits/SHAs so they can be verified against actual code
+- Add a generation timestamp and tool version
+- Include instructions for how to consume/action the findings
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @full_review.md around lines 54 - 58, The YAML has a duplicate key segment_chunking_enabled in @sample_web_auto_solver_production.yaml (top-level true and inside the full-video-first section set to false); open the sample_web_auto_solver_production.yaml, locate the top-level segment_chunking_enabled and the full-video-first section, then remove the redundant segment_chunking_enabled: false from the full-video-first block (or alternatively rename it to a mode-specific key like full_video_first.segment_chunking_enabled) and add a clear inline comment clarifying that chunking is enabled for production globally and that the full-video-first mode is the only case with an override so the intended behavior is unambiguous.
+
+
+
+============================================================================
+File: atlas_web_auto_solver.py
+Line: 851 to 852
+Type: potential_issue
+
+Comment:
+Avoid logging account email fragments in normal runs.
+
+Line 851 prints partial login email. Even masked, this is still user-identifier leakage in logs.
+
+
+
+
+Suggested fix
+
+-    print(f"[debug] _resolve_atlas_email result: {res[:4]}...{res[-4:] if len(res) > 8 else ''}")
+     return res
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_web_auto_solver.py around lines 851 - 852, The debug print in _resolve_atlas_email currently emits partial email fragments via print(f"[debug] _resolve_atlas_email result: {res[:4]}...{res[-4:] if len(res) > 8 else ''}"), which leaks user-identifying data; remove this print or replace it with a non-identifying log (e.g., logger.debug with a boolean verbose flag) or fully mask the value (e.g., only log length or a hash) before returning res so no email fragments appear in normal logs; update any tests or callers assuming the print side-effect accordingly.
+
+
+
+============================================================================
+File: atlas_web_auto_solver.py
+Line: 9126 to 9149
+Type: potential_issue
+
+Comment:
+Dry-run split simulation produces invalid timelines.
+
+Line 9145 duplicates a segment on split without dividing timestamps. That creates overlap/zero-duration artifacts and can trigger false policy failures during dry-run validation.
+
+
+
+
+Suggested fix
+
+         elif action == "split":
+-            new_seg = copy.deepcopy(segs[list_idx])
+-            segs.insert(list_idx + 1, new_seg)
++            cur = segs[list_idx]
++            s = _safe_float(cur.get("start_sec", 0.0), 0.0)
++            e = _safe_float(cur.get("end_sec", s), s)
++            if e > s + 0.01:
++                mid = round((s + e) / 2.0, 3)
++                right = copy.deepcopy(cur)
++                cur["end_sec"] = mid
++                right["start_sec"] = mid
++                segs.insert(list_idx + 1, right)
++            else:
++                # Fallback: keep behavior but avoid breaking execution.
++                new_seg = copy.deepcopy(cur)
++                segs.insert(list_idx + 1, new_seg)
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_web_auto_solver.py around lines 9126 - 9149, In _apply_operations_in_memory, the current 'split' branch just duplicates the segment (segs) without adjusting timestamps, causing overlaps/zero-duration segments; update the 'split' handling in _apply_operations_in_memory so that when action == "split" you compute a split_point (prefer op-provided split time like op.get("split_time") or op.get("timestamp"), falling back to the midpoint between segs[list_idx]["start_sec"] and segs[list_idx]["end_sec"] if none provided), then set segs[list_idx]["end_sec"] = split_point and for the inserted new_seg set new_seg["start_sec"] = split_point and preserve its end_sec; ensure split_point is strictly between start_sec and end_sec to avoid zero-duration segments before inserting and keep rest of logic (reindexing segment_index) intact.
+
+
+
+============================================================================
+File: atlas_web_auto_solver.py
+Line: 7989 to 7995
+Type: potential_issue
+
+Comment:
+full-video-first condition is inverted and disables fallback logic.
+
+Line 7990 uses not chunking_enabled, so the “full-video-first then fallback to chunking” path won’t activate when chunking is enabled. This contradicts the control flow at Lines 7993-8015.
+
+
+
+
+Suggested fix
+
+-    full_video_first = not chunking_enabled and bool(
++    full_video_first = chunking_enabled and bool(
+         _cfg_get(cfg, "run.segment_chunking_fallback_on_full_fail", True)
+     )
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_web_auto_solver.py around lines 7989 - 7995, The full-video-first flag is inverted: change the assignment of full_video_first so it is true when chunking is enabled and the config run.segment_chunking_fallback_on_full_fail is set (i.e., replace the current not chunking_enabled condition with chunking_enabled), leaving the subsequent print and should_chunk toggle logic intact; locate the assignment to full_video_first (and the related variables chunking_enabled, _cfg_get, should_chunk) and update the boolean expression to use chunking_enabled && the config check so the "try full video then fall back to chunking" path can run when chunking is enabled.
+
+
+
+============================================================================
+File: atlas_correction_chat.py
+Line: 119 to 135
+Type: potential_issue
+
+Comment:
+skip/accept commands only recognized on first input line.
+
+The logic at lines 124-131 only checks for skip/accept when len(lines) == 0. If a user accidentally enters any text first (even whitespace that gets appended), these commands won't be recognized on subsequent lines.
+
+Consider checking for these commands on any line before JSON accumulation begins, or document this behavior clearly.
+
+
+
+🛠️ Suggested improvement
+
+     while True:
+         try:
+             line = input()
+         except (EOFError, KeyboardInterrupt):
+             break
+-        if len(lines) == 0:
+-            if line.lower() in ("skip", "accept"):
+-                if line.lower() == "skip":
+-                    print("[correction] Episode skipped.")
+-                    return None
+-                if line.lower() == "accept":
+-                    print("[correction] Accepted Gemini's labels as-is.")
+-                    return labels_data  # Return original labels
++        # Check for commands before any content is accumulated
++        if line.lower() in ("skip", "accept") and not any(l.strip() for l in lines):
++            if line.lower() == "skip":
++                print("[correction] Episode skipped.")
++                return None
++            if line.lower() == "accept":
++                print("[correction] Accepted Gemini's labels as-is.")
++                return labels_data
+         lines.append(line)
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_correction_chat.py around lines 119 - 135, The loop only treats "skip"/"accept" as commands when len(lines) == 0, so stray or blank input before the command blocks it; change the check to inspect the current raw input (use line.strip().lower()) and treat it as a command if no meaningful JSON accumulation has started (i.e., lines is empty or every entry in lines is blank/whitespace). Concretely, modify the if condition around input handling in the while True loop to: if line.strip().lower() in ("skip","accept") and (not lines or all(not l.strip() for l in lines)): handle "skip" and "accept" as before; otherwise append the line to lines and continue detecting JSON end as before.
+
+
+
+============================================================================
+File: atlas_triplet_compare.py
+Line: 2183 to 2188
+Type: potential_issue
+
+Comment:
+Use except Exception: instead of bare except:.
+
+A bare except: clause (E722) catches everything including SystemExit, KeyboardInterrupt, and GeneratorExit, which can mask critical failures and make debugging difficult.
+
+
+
+🐛 Proposed fix
+
+     finally:
+         try:
+             chat_page.close()
+-        except:
++        except Exception:
+             pass
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_triplet_compare.py around lines 2183 - 2188, The finally block currently uses a bare except when calling chat_page.close(), which can swallow system-exiting exceptions; update that except to "except Exception:" so only standard exceptions are caught (optionally log or re-raise after handling). Locate the finally block that calls chat_page.close() (the chat_page.close() call) and replace the bare "except:" with "except Exception:" to avoid catching SystemExit/KeyboardInterrupt/GeneratorExit.
+
+
+
+============================================================================
+File: atlas_web_auto_solver.py
+Line: 794 to 805
+Type: potential_issue
+
+Comment:
+Vertex payload translation misses file_uri → fileUri.
+
+Lines 7225 and 7238 build GCS attachments with file_uri, but _translate_payload_for_vertex (lines 794–805) does not camel-case that key. Vertex generateContent calls will reject payloads with untranslated file_uri keys.
+
+
+Fix
+
+ def _translate_payload_for_vertex(value: Any) -> Any:
+     if isinstance(value, dict):
+         out: Dict[str, Any] = {}
+         for key, item in value.items():
+             mapped = key
+             if key == "inline_data":
+                 mapped = "inlineData"
+             elif key == "file_data":
+                 mapped = "fileData"
+             elif key == "mime_type":
+                 mapped = "mimeType"
++            elif key == "file_uri":
++                mapped = "fileUri"
+             out[mapped] = _translate_payload_for_vertex(item)
+         return out
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_web_auto_solver.py around lines 794 - 805, _translate_payload_for_vertex is missing a mapping for the snake_case key "file_uri" so payloads still contain file_uri (causing Vertex generateContent to reject them); update the function (the for-loop that handles "inline_data", "file_data", "mime_type") to also map "file_uri" -> "fileUri" and recurse with _translate_payload_for_vertex(item) like the other keys so GCS attachments built with file_uri are camel-cased before sending to Vertex.
+
+
+
+============================================================================
+File: atlas_knowledge_collector.py
+Line: 219 to 226
+Type: potential_issue
+
+Comment:
+URL safety check is insufficiently strict.
+
+The _is_safe_url() function only checks if "discord" appears anywhere in the netloc, which could match malicious domains like discord.attacker.com or attacker-discord.com. For downloading attachments, this should be stricter.
+
+
+
+🛡️ Proposed stricter validation
+
+ def _is_safe_url(url: str) -> bool:
+     """Basic check for Discord attachment URLs."""
+     try:
+         parsed = urlparse(url)
+-        return parsed.scheme in ("http", "https") and "discord" in parsed.netloc
++        if parsed.scheme not in ("http", "https"):
++            return False
++        # Only allow actual Discord CDN domains
++        allowed_hosts = (
++            "cdn.discordapp.com",
++            "media.discordapp.net",
++            "discordapp.com",
++        )
++        return any(parsed.netloc == host or parsed.netloc.endswith(f".{host}") for host in allowed_hosts)
+     except Exception:
+         return False
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_knowledge_collector.py around lines 219 - 226, The current _is_safe_url(url: str) accepts any netloc containing "discord", which allows malicious domains; change it to use parsed.hostname (not netloc) and validate against a strict whitelist of known Discord attachment hosts (e.g. "cdn.discordapp.com", "media.discordapp.net") or require hostname to end with ".discordapp.com" if you need subhosts, and also ensure the scheme is "http" or "https" and there is no embedded userinfo; keep the try/except and return False on failure.
+
+
+
+============================================================================
+File: atlas_dynamic_rag.py
+Line: 93 to 106
+Type: potential_issue
+
+Comment:
+Potential NameError or empty list sort when lessons is empty.
+
+The scored.sort(...) at line 103 is outside the if lessons: block. If lessons is empty, scored will be an empty list (initialized at line 95 inside the if), and this code will raise NameError because scored is undefined when lessons is falsy.
+
+
+
+🐛 Proposed fix
+
+         # 2. Retrieve Policy Lessons (The "Audit Brain")
+         lessons = self._load_all(self.lessons_path)
++        scored = []
+         if lessons:
+-            scored = []
+             for l in lessons:
+                 if l.get("category") in self.universal_categories:
+                     scored.append((1000, l))
+                 else:
+                     text = f"{l.get('question', '')} {l.get('answer', '')}"
+                     scored.append((_score_against_video(text, keywords), l))
+-            
+-        scored.sort(key=lambda x: x[0], reverse=True)
++            scored.sort(key=lambda x: x[0], reverse=True)
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_dynamic_rag.py around lines 93 - 106, The code assumes scored exists even when lessons is falsy; initialize or define scored before use (or move the sort/slicing inside the lessons branch). Specifically, ensure the variable scored (used later by scored.sort(...), top_items and top list-comprehension) is always defined when referenced by either: a) declare scored = [] before calling self._load_all(self.lessons_path), or b) move the scored.sort(...), slicing to top_items and construction of top inside the block that builds scored (the branch that uses self.universal_categories and _score_against_video(text, keywords)). This will prevent a NameError and ensure top/top_items are well-defined when lessons is empty.
+
+
+
+============================================================================
+File: full_review2.md
+Line: 240 to 241
+Type: potential_issue
+
+Comment:
+Truncated code snippet in proposed fix.
+
+Line 240 shows a truncated grep -oP pattern that appears incomplete: grep -oP '(? — the lookbehind pattern and closing quotes are missing. This makes the proposed fix unclear and potentially confusing for readers.
+
+Consider completing the pattern or noting it was intentionally abbreviated:
+
+-  FOLDER_ID=$(echo "$DRIVE_LINK" | grep -oP '(?
++  FOLDER_ID=$(echo "$DRIVE_LINK" | grep -oP '(?<=folders/)[^/?]+' || echo "")
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @full_review2.md around lines 240 - 241, The diff shows a truncated grep pattern used to set FOLDER_ID: the line assigning FOLDER_ID uses "grep -oP '(?" which is incomplete; update the FOLDER_ID assignment (the shell variable and the grep invocation) to include the full PCRE lookbehind/lookahead pattern and closing quotes or, if truncation was intentional, replace the snippet with a clear placeholder/comment indicating the intended complete pattern so readers aren't confused (refer to the FOLDER_ID assignment and the grep -oP invocation to locate the change).
+
+
+
+============================================================================
+File: atlas_discord_bot.py
+Line: 130 to 133
+Type: potential_issue
+
+Comment:
+Use timezone-aware datetime instead of deprecated utcnow().
+
+datetime.utcnow() is deprecated in Python 3.12+. Use datetime.now(timezone.utc) instead, which you've already imported.
+
+
+
+🐛 Proposed fix
+
+         export_data = {
+-            "exported_at": datetime.utcnow().isoformat(),
++            "exported_at": datetime.now(timezone.utc).isoformat(),
+             "messages": self.knowledge_buffer.copy()
+         }
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_discord_bot.py around lines 130 - 133, Replace the deprecated datetime.utcnow() call when building export_data with a timezone-aware timestamp: use datetime.now(timezone.utc) instead; update the export_data assignment (the "exported_at" field in the export_data dict where export_data and self.knowledge_buffer are used) to call datetime.now(timezone.utc).isoformat() so the exported_at value is timezone-aware.
+
+
+
+============================================================================
+File: atlas_discord_bot.py
+Line: 29 to 33
+Type: potential_issue
+
+Comment:
+Use exception chaining for clearer error context.
+
+When re-raising exceptions, use raise ... from err to preserve the exception chain for better debugging.
+
+
+
+🐛 Proposed fix
+
+ try:
+     import discord
+ except ImportError:
+-    raise RuntimeError("discord.py package not installed. Run: pip install discord.py")
++    raise RuntimeError("discord.py package not installed. Run: pip install discord.py") from None
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_discord_bot.py around lines 29 - 33, The except ImportError block should preserve the original exception chain: capture the ImportError as a variable (e.g., except ImportError as err) and re-raise the RuntimeError using exception chaining (raise RuntimeError("discord.py package not installed. Run: pip install discord.py") from err) so tracebacks show the original ImportError; update the import block that currently does try: import discord except ImportError: ... to use this pattern.
+
+
+
+============================================================================
+File: atlas_discord_bot.py
+Line: 23 to 24
+Type: potential_issue
+
+Comment:
+Unused import: re.
+
+The re module is imported but not used in this file.
+
+
+
+🐛 Proposed fix
+
+-import re
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_discord_bot.py around lines 23 - 24, The file imports the unused module re; remove the unused import statement (the import re line) from atlas_discord_bot.py so the module list only contains needed imports (e.g., keep import time), ensuring no references to re remain elsewhere in the file before committing.
+
+
+
+============================================================================
+File: atlas_triplet_batch.py
+Line: 605 to 634
+Type: potential_issue
+
+Comment:
+Remove unused function _quality_gate_decision (lines 605-634).
+
+This function is dead code—it is defined but never called anywhere in the codebase. The batch runner uses evaluate_submit_safety from submit_gate.py (imported at line 32, called at lines 1040 and 1101) for gate decisions instead. The local function should be deleted to reduce code clutter.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_triplet_batch.py around lines 605 - 634, The function _quality_gate_decision in atlas_triplet_batch.py is dead code and should be removed; delete the entire function definition (the def _quality_gate_decision(...) block) from the file and run tests/lint to ensure no remaining references exist (there should be none since evaluate_submit_safety from submit_gate.py is used); if any local tests or comments reference _quality_gate_decision, update or remove them accordingly.
+
+
+
+============================================================================
+File: atlas_repair_loop.py
+Line: 629 to 641
+Type: potential_issue
+
+Comment:
+Silent failure when appending to manual queue may lose audit trail.
+
+If append_to_manual_queue fails (e.g., disk full, permissions), the exception is silently swallowed. This could result in repair failures not being tracked for manual review. Consider at minimum logging the failure.
+
+
+
+🛡️ Proposed fix: Log queue append failures
+
+     # Queue for manual review
+     try:
+         from submit_gate import append_to_manual_queue  # type: ignore
+         append_to_manual_queue(
+             outputs_dir,
+             gate_result,
+             extra_meta={
+                 "repair_attempted": True,
+                 "repair_attempts": len(result.attempts),
+                 "repair_failure_reason": result.failure_reason,
+             },
+         )
+-    except Exception:
+-        pass
++    except Exception as exc:
++        print(f"[repair-loop] warn episode={episode_id} manual_queue_append_failed={exc}")
+ 
+     return None
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_repair_loop.py around lines 629 - 641, The current try/except around append_to_manual_queue silently swallows failures which loses audit info; instead catch exceptions from append_to_manual_queue (called with outputs_dir, gate_result, extra_meta using result.attempts and result.failure_reason) and log the error and stack trace (e.g., logger.exception or logger.error(..., exc_info=True)) including context about outputs_dir and repair metadata so the failure is recorded for manual review; keep the exception handling to prevent crash but ensure the log includes the exception message and relevant identifiers.
+
+
+
+============================================================================
+File: submit_gate.py
+Line: 286 to 292
+Type: potential_issue
+
+Comment:
+Potential TypeError: winner_score can be None at this point.
+
+The score_threshold check (which validates winner_score is not None) runs after the validator check. If the validator step returns early here, winner_score could be None, causing int(round(None)) to raise a TypeError.
+
+The same issue exists at lines 312, 325, and 340.
+
+
+
+🐛 Proposed fix: Guard against None before rounding
+
+             return SubmitGateResult(
+                 episode_id=eid, safe=False, winner=winner,
+                 reason="validator_no_segments_parsed",
+                 reason_detail=(
+                     f"Could not parse any segments from winner file: '{winner_path}'. "
+                     "Cannot run deterministic validation. Blocking as precaution."
+                 ),
+-                score_pct=int(round(winner_score)),
++                score_pct=int(round(winner_score)) if winner_score is not None else None,
+                 validator_ok=False,
+                 llm_hallucination_flag=llm_hall,
+                 checks_performed=checks,
+             )
+
+
+Apply similar fix at lines 312, 325, and 340.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @submit_gate.py around lines 286 - 292, The code calls int(round(winner_score)) while winner_score may be None, causing a TypeError; update each place that sets score_pct (the current usage with winner_score, at the shown block and the similar spots around lines 312, 325, 340) to guard: compute score_pct only when winner_score is not None (e.g., score_pct = int(round(winner_score)) if winner_score is not None else None or an appropriate default), leaving other fields (validator_ok, llm_hallucination_flag, checks_performed) unchanged; apply the same None-checked pattern to all four occurrences to prevent rounding None.
+
+
+
+============================================================================
+File: pipeline_runner.py
+Line: 696
+Type: potential_issue
+
+Comment:
+Replace private attribute access with public AgentScope API.
+
+Line 696 uses agent._disable_console_output, a private implementation detail. AgentScope provides the public method agent.set_console_output_enabled(False) for this purpose. Use the public API to avoid breakage with future AgentScope updates.
+
+
+🔧 Proposed fix
+
+-        agent._disable_console_output = True  # type: ignore[attr-defined]
++        agent.set_console_output_enabled(False)
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @pipeline_runner.py at line 696, Replace the private attribute access agent._disable_console_output with the public AgentScope API by calling agent.set_console_output_enabled(False) where the private field is currently set; locate the usage of agent._disable_console_output in the pipeline_runner logic (the scope where agent is configured) and swap it to call agent.set_console_output_enabled(False) so you use the supported public method instead of touching the private attribute.
+
+
+
+============================================================================
+File: sample_web_auto_solver_production.yaml
+Line: 156 to 159
+Type: potential_issue
+
+Comment:
+Change model name from gemini-3.1-pro-preview to gemini-3.1-pro.
+
+According to Google's current Gemini API model listings (as of March 2026), the available model is "Gemini 3.1 Pro (Preview)", where "Preview" is a status indicator, not part of the model ID. The correct callable model identifier is gemini-3.1-pro, not gemini-3.1-pro-preview. Update all four references on lines 156-159.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @sample_web_auto_solver_production.yaml around lines 156 - 159, Update the four model configuration values by replacing the incorrect ID "gemini-3.1-pro-preview" with the correct callable model identifier "gemini-3.1-pro" for the keys model, compare_model, chat_timed_model, and vertex_chat_model so all four references use "gemini-3.1-pro".
+
+
+
+============================================================================
+File: full_review.md
+Line: 312 to 536
+Type: potential_issue
+
+Comment:
+Update model references to use currently supported Vertex AI models.
+
+Two findings contain factual errors regarding Gemini model availability as of March 2026:
+
+### Finding 1: vertex_create_cache.py, line 138
+The review states that gemini-3.1-pro-preview "does not exist in Vertex AI." This is factually incorrect. According to Vertex AI documentation (March 2026), gemini-3.1-pro-preview exists and is available in Preview. However, the code should still be updated to use a generally available (GA) model rather than a preview model for production stability. Update the default from "gemini-3.1-pro-preview" to a supported GA model such as "gemini-2.5-pro" or "gemini-2.5-flash".
+
+### Finding 2: atlas_triplet_compare.py, lines 243–249
+The review contains multiple factual errors:
+- Claims both aliases "map to non-existent models" — incorrect. The target models gemini-3-pro-preview and gemini-3-flash-preview both exist in Vertex AI Preview.
+- Claims "As of March 2026, Gemini API has gemini-3.1-pro-preview but no gemini-3-pro-preview" — incorrect. Both models exist in Preview.
+
+However, there is a real issue: the alias source gemini-3.1-flash-preview does not exist in Vertex AI (only gemini-3.1-flash-lite-preview exists). The function normalizes a non-existent model name, which will pass through unchanged and likely cause API errors.
+
+Action: Remove the problematic alias mapping for "gemini-3.1-flash-preview" or update it to map "gemini-3.1-flash-lite-preview" if needed. Otherwise, remove the entire aliases dictionary if these normalizations are no longer required for current Gemini API naming conventions.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @full_review.md around lines 312 - 536, Change the default Vertex model string in the argument parser call ap.add_argument("--model", default="gemini-3.1-pro-preview") to a GA model (e.g., "gemini-2.5-pro") so the script uses a supported non-preview default; in atlas_triplet_compare.py edit the _normalize_vertex_model_id function to remove or correct the outdated alias that references "gemini-3.1-flash-preview" (either delete that mapping or change it to "gemini-3.1-flash-lite-preview" if that is the intended target) and add a brief comment noting aliases must match live Vertex model names.
+
+
+
+============================================================================
+File: atlas_discord_bot.py
+Line: 71 to 72
+Type: potential_issue
+
+Comment:
+Use asyncio.create_task() instead of deprecated self.loop.
+
+In discord.py 2.0+, Client.loop is deprecated. Use asyncio.create_task() for creating background tasks.
+
+
+🐛 Proposed fix
+
+         # Start background flush task
+-        self.loop.create_task(self._background_flush())
++        asyncio.create_task(self._background_flush())
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_discord_bot.py around lines 71 - 72, Replace usage of the deprecated Client.loop to create background tasks: change the call that currently uses self.loop.create_task(self._background_flush()) to use asyncio.create_task(self._background_flush()) instead; import asyncio if not already imported and ensure this change is made where the background flush task is started (reference: self.loop.create_task and _background_flush).
+
+
+
+============================================================================
+File: atlas_auto_sync_and_rebuild.py
+Line: 184 to 189
+Type: potential_issue
+
+Comment:
+Overwrite missing eval data with an empty object, not [] or stale content.
+
+When the source file is absent, this branch preserves any old outputs/gemini_chat_evaluations.json, and if no file exists it writes []. The producer in this PR writes an object with an evaluations map, so this can serve either stale or schema-incompatible data to the viewer/dashboard.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_auto_sync_and_rebuild.py around lines 184 - 189, If the source eval_json is missing, don't preserve any stale eval_dst content or write an array; instead overwrite/make eval_dst with the producer's expected empty object shape. Change the branch around eval_json/ eval_dst so that when effective_outputs / "gemini_chat_evaluations.json" does not exist you always write the JSON object with an empty evaluations map (e.g. '{"evaluations":{}}\\n') to eval_dst (use outputs_dir / "gemini_chat_evaluations.json"), and only copy when eval_json.exists().
+
+
+
+============================================================================
+File: specs/001-4way-episode-solver/spec.md
+Line: 32 to 35
+Type: potential_issue
+
+Comment:
+Scenario 3 introduces a fifth synthesized candidate that the spec never models.
+
+Every other section describes choosing one of the four candidates, but this scenario also allows creating a new merged answer. That is a materially different pipeline with its own artifacts, validation path, and submit-safety rules.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @specs/001-4way-episode-solver/spec.md around lines 32 - 35, Scenario 3 currently introduces a fifth "merged" candidate not modeled elsewhere; either remove that merged-answer behavior or explicitly model it as a separate flow. Update the spec so Scenario 3 either: (A) constrains the outcome to selecting one of the four existing candidates (matching other scenarios), or (B) is renamed and expanded into a new "merged candidate" scenario that defines the synthesized artifact, its validation/judge path, submit-safety rules, and how it interacts with the 4-way pipeline; reference the "4-way pipeline", "merged answer"/"fifth synthesized candidate", and "submit-safety rules" terms so readers can find and align related sections.
+
+
+
+============================================================================
+File: prompts/atlas_vertex_context_pack.txt
+Line: 2175 to 2249
+Type: potential_issue
+
+Comment:
+Don't teach the judge to score or select missing candidates.
+
+Tier2 and Tier3/API are both marked (missing) here, but the verdict still gives them scores of 95/98 and picks api as the winner. That directly contradicts the unavailable-source rule and trains the model to promote nonexistent candidates.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @prompts/atlas_vertex_context_pack.txt around lines 2175 - 2249, The verdict assigns scores and a winner despite "Tier2" and "Tier3/API" being labeled "(missing)"; update the generation/validation so missing candidate sections are never scored or chosen: detect the "(missing)" marker for "Tier2" and "Tier3/API" and when present omit them from "scores" and from the "winner" selection (set "winner" to null or "none" and remove their numeric entries from "scores" in the "Reference Verdict JSON"), and add a short "notes" field indicating candidates were missing; touch the logic that builds the verdict JSON and the place that emits the "winner" and "scores" keys to enforce this rule.
+
+
+
+============================================================================
+File: specs/001-4way-episode-solver/data-model.md
+Line: 81 to 86
+Type: potential_issue
+
+Comment:
+Define RepairAttempt before referencing it.
+
+RepairLoopResult.attempts points to RepairAttempt[], but this document never defines that nested entity or its fields. That leaves repair_history.jsonl and typed consumers without a contract.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @specs/001-4way-episode-solver/data-model.md around lines 81 - 86, Add a concrete definition for the nested type RepairAttempt and place it above or before its use in RepairLoopResult so consumers have a clear contract; define fields such as attempt_id (string), timestamp (ISO string), tool (string) or method, input_segments (Segment[]), output_segments (Segment[]?), success (bool), error_message (string? nullable) and any metrics (e.g., duration_ms) and reference this RepairAttempt type in the RepairLoopResult.attempts table so repair_history.jsonl and typed clients can rely on a stable schema.
+
+
+
+============================================================================
+File: specs/001-4way-episode-solver/plan.md
+Line: 3 to 4
+Type: potential_issue
+
+Comment:
+Use repo-relative links instead of local file:///e:/... URLs.
+
+These links only resolve on the author's Windows machine and are broken everywhere else. Relative Markdown links keep the plan portable in GitHub, VS Code, and rendered docs.
+
+
+
+Suggested fix
+
+-Branch: 001-4way-episode-solver | Date: 2026-03-20 | Spec: spec.md  
+-Research: research.md | Data Model: data-model.md
++Branch: 001-4way-episode-solver | Date: 2026-03-20 | Spec: spec.md  
++Research: research.md | Data Model: data-model.md
+...
+-→ انظر research.md
++→ انظر research.md
+
+
+
+
+Also applies to: 94-94
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @specs/001-4way-episode-solver/plan.md around lines 3 - 4, Replace absolute Windows file URLs in the header line of specs/001-4way-episode-solver/plan.md (the occurrences of "file:///e:/OCR_annotation_Atlas/specs/001-4way-episode-solver/spec.md", "research.md", and "data-model.md") with repo-relative Markdown links (e.g. use ./specs/001-4way-episode-solver/spec.md, ./specs/001-4way-episode-solver/research.md, ./specs/001-4way-episode-solver/data-model.md or equivalent relative paths) so the Branch/Research/Data Model links resolve correctly off the repository rather than a local file:// URL; apply the same replacement pattern to any other files mentioned (note: reviewer also flagged occurrence "94-94").
+
+
+
+============================================================================
+File: atlas_dashboard_v2.py
+Line: 256 to 268
+Type: potential_issue
+
+Comment:
+Escape every artifact-derived string before injecting HTML.
+
+knowledge_by_category, knowledge_by_source, cost_by_model, and episode_status are rendered raw here, unlike the other tables. Those values come from JSON/JSONL artifacts, so a malformed value can inject markup into the generated dashboard.
+
+
+
+Suggested fix
+
+     know_rows = "".join(
+-        f"{cat}{cnt}"
++        f"{html.escape(cat)}{cnt}"
+         for cat, cnt in m.get("knowledge_by_category", {}).items()
+     )
+     # Cost by model
+     cost_rows = "".join(
+-        f"{model[:35]}${cost:.4f}"
++        f"{html.escape(model[:35])}${cost:.4f}"
+         for model, cost in m.get("cost_by_model", [])
+     )
+     # Episode status
+     status_rows = "".join(
+-        f"{status}{cnt}"
++        f"{html.escape(status)}{cnt}"
+         for status, cnt in m.get("episode_status", {}).items()
+     )
+...
+-        Sources: {", ".join(f"{s}: {c}" for s, c in m.get("knowledge_by_source", {}).items()) or "none"}
++        Sources: {", ".join(f"{html.escape(s)}: {c}" for s, c in m.get("knowledge_by_source", {}).items()) or "none"}
+
+
+
+
+Also applies to: 463-468
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_dashboard_v2.py around lines 256 - 268, The HTML table rows are created by directly injecting artifact-derived strings (in know_rows, cost_rows, status_rows and the similar block at 463-468), which can lead to XSS; fix by escaping all values pulled from m.get(...) before concatenating into HTML (e.g., escape category, model, status, and any string keys/values using a safe HTML-escape utility such as html.escape or your project's sanitizer) and format numeric values (cost, counts) separately so only sanitized strings are interpolated; update the generators for know_rows, cost_rows, status_rows (and the duplicate block at 463-468) to escape the string fields and ensure cost is formatted from a numeric value rather than a raw string.
+
+
+
+============================================================================
+File: atlas_dashboard_v2.py
+Line: 159 to 177
+Type: potential_issue
+
+Comment:
+The "7-day" trend is not actually ordered by date.
+
+Using %m-%d strings and slicing the last 7 sorted keys will misorder data around month/year boundaries and can exclude newer days in long histories. Store/sort by a full date key, then format only for display.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_dashboard_v2.py around lines 159 - 177, The trend aggregation currently uses month-day strings ("%m-%d") as keys which breaks chronological ordering; change the key to a full date (preferably a date object or ISO "YYYY-MM-DD" string) when building trend in the loop (the variables to edit: trend, date_str/result_path/stat/ts and the block that sets trend[date_str]), accumulate counts keyed by that full date, then when creating m["trend_7d"] sort by the full date key chronologically and only format the date to "%m-%d" for display in the final list; ensure you still fallback to file mtime (result_path.stat().st_mtime) or queued_at when determining the full date.
+
+
+
+============================================================================
+File: specs/001-4way-episode-solver/spec.md
+Line: 69 to 71
+Type: potential_issue
+
+Comment:
+Hallucination should not be a repair-pass acceptance case without redefining the gate.
+
+This scenario says a hallucinated result is repaired and accepted, but the rest of the spec set treats hallucination as fail-closed. Please align the repair story with the gate policy before implementation.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @specs/001-4way-episode-solver/spec.md around lines 69 - 71, The spec currently treats a hallucinated failure as repaired-and-accepted in the "hallucination" scenario, conflicting with the rest of the spec that treats hallucination as fail-closed; update the scenario in the spec (the "hallucination" bullet that references "repair loop" and "acceptance by other models") to either (a) explicitly redefine the gate policy for hallucination — naming the new gate behavior and how the "repair loop" can override fail-closed — or (b) align it with existing policy by marking hallucination as fail-closed so the repair loop cannot auto-accept and instead proceeds to retry logic or manual handoff (consistent with the "fail after 3 attempts" flow). Ensure the change references the same terms used in the file ("hallucination", "repair loop", "gate", "fail-closed") so the implementation matches the spec.
+
+
+
+============================================================================
+File: atlas_auto_sync_and_rebuild.py
+Line: 318 to 364
+Type: potential_issue
+
+Comment:
+--upload-results still omits the new triplet artifacts.
+
+This block now produces triplet_compare_results.jsonl, triplet_compare/, and refreshed chat eval data, but the later upload step still only sends dashboard/index/viewer/queue/chat reviews. A sync+upload run will therefore leave Drive stale for the outputs this flag just generated.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_auto_sync_and_rebuild.py around lines 318 - 364, The triplet batch invocation (inside the args.run_triplet_batch block building cmd) produces new artifacts but doesn't request they be uploaded; modify the cmd construction so when args.upload_results is truthy you append the upload flags and paths for the triplet outputs — e.g., add "--upload-results" and include the triplet artifacts by extending cmd with the paths str(effective_outputs / "triplet_compare") and str(effective_outputs / "triplet_compare_results.jsonl") (or whatever upload flag your uploader expects) so the later upload step (triggered by the same flag) will include these new files.
+
+
+
+============================================================================
+File: atlas_eval_store.py
+Line: 89 to 92
+Type: potential_issue
+
+Comment:
+Do not hide eval-text write failures.
+
+If _write_episode_eval_text_file() fails here, the JSON upsert still reports success and main() later prints a path that may not exist. That leaves the two evaluation artifacts out of sync with no signal to the caller.
+
+
+
+Suggested fix
+
+-    try:
+-        _write_episode_eval_text_file(outputs_dir, eid, text)
+-    except Exception:
+-        pass
++    _write_episode_eval_text_file(outputs_dir, eid, text)
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_eval_store.py around lines 89 - 92, The current bare except around _write_episode_eval_text_file hides write failures causing JSON upsert to report success while the text file is missing; change this to either let the exception propagate (remove the try/except) or catch Exception as e and log the error (including outputs_dir and eid) then re-raise or return a failure status so the caller that performs the JSON upsert knows to abort/update status; locate the try block around _write_episode_eval_text_file and ensure the calling flow (the function that does the JSON upsert) checks for and handles write failures instead of proceeding as if successful.
+
+
+
+============================================================================
+File: atlas_auto_sync_and_rebuild.py
+Line: 275 to 279
+Type: potential_issue
+
+Comment:
+Abort if the snapshot directory cannot be cleaned.
+
+Logging and continuing here means the next Drive sync runs on top of stale files from a previous snapshot. Coverage detection and published artifacts can then mix old and new data without any hard failure.
+
+
+
+Suggested fix
+
+         if snapshot_dir.exists():
+             try:
+                 shutil.rmtree(snapshot_dir, ignore_errors=False)
+             except OSError as e:
+-                _log(f"Warning: Could not remove temp dir {snapshot_dir}: {e}")
++                raise RuntimeError(f"Could not clean snapshot dir {snapshot_dir}") from e
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_auto_sync_and_rebuild.py around lines 275 - 279, The try/except around shutil.rmtree(snapshot_dir, ...) must abort instead of just logging; change the except OSError as e block (alongside the shutil.rmtree call and the subsequent snapshot_dir.mkdir call) to log the error via _log and then terminate the process (re-raise the exception or call sys.exit(1)) so execution does not continue to snapshot_dir.mkdir and risk using stale snapshot files.
+
+
+
+============================================================================
+File: atlas_eval_store.py
+Line: 43 to 52
+Type: potential_issue
+
+Comment:
+Reject unsafe episode_id values before composing paths.
+
+eid is used verbatim as both a directory name and part of the filename. Inputs like ../foo or /tmp/x will escape outputs_dir/chat_reviews and let the automation write outside the outputs tree.
+
+
+
+Suggested guard
+
+ def _write_episode_eval_text_file(outputs_dir: Path, episode_id: str, text: str) -> Optional[Path]:
+     eid = str(episode_id or "").strip().lower()
+     if not eid:
+         return None
++    if not re.fullmatch(r"[a-z0-9_-]+", eid):
++        raise ValueError(f"Invalid episode_id: {episode_id!r}")
+     target_dir = outputs_dir / "chat_reviews" / eid
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_eval_store.py around lines 43 - 52, The function _write_episode_eval_text_file currently uses episode_id verbatim to build target_dir and out_path which allows directory traversal (e.g., "../foo" or absolute paths); before composing paths, validate/sanitize episode_id (eid) to reject or normalize unsafe values—ensure it is not absolute, contains no path separators ("/" or os.sep), and only contains an allowlist of characters (e.g., alphanumerics, hyphen, underscore); if the sanitized id is empty or differs from the original unsafe input, return None (or bail) to avoid writing outside outputs_dir; update references to eid, target_dir, and out_path accordingly so all path composition uses the validated/sanitized name.
+
+
+
+============================================================================
+File: specs/001-4way-episode-solver/quickstart.md
+Line: 38 to 65
+Type: potential_issue
+
+Comment:
+Fix the batch command example—--episodes-dir does not exist.
+
+The batch command at lines 38–43 uses atlas_triplet_batch.py --episodes-dir /path/to/episodes, but the script exposes --index (default: outputs/episodes_review_index.json) instead. This example will fail immediately on first use.
+
+The Python run_repair_loop() example at lines 52–65 is correct and matches the current function signature.
+
+
+Batch command should use:
+
+python atlas_triplet_batch.py \
+  --config web_auto_solver.yaml \
+  --index /path/to/episodes_review_index.json \
+  --outputs-dir outputs
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @specs/001-4way-episode-solver/quickstart.md around lines 38 - 65, The batch example in atlas_triplet_batch.py uses a non-existent flag --episodes-dir; update the docs to call atlas_triplet_batch.py with the real CLI flags (use --index to point to the episodes review index JSON and add --outputs-dir for outputs), e.g. replace the --episodes-dir line with the --index /path/to/episodes_review_index.json and include --outputs-dir outputs; leave the run_repair_loop() Python example as-is since it matches the function signature.
+
+
+
+============================================================================
+File: atlas_dashboard_v2.py
+Line: 544 to 545
+Type: potential_issue
+
+Comment:
+Use Path.as_uri() to build portable file URLs.
+
+Manual string concatenation with Path objects produces system-specific output that breaks file URLs on Windows (backslashes instead of forward slashes) and fails to properly encode spaces and non-ASCII characters. Use out_path.resolve().as_uri() instead, which is the standard library method for generating RFC 8089 compliant file:// URLs.
+
+
+Suggested fix
+
+     if args.open:
+-        webbrowser.open(f"file://{out_path}")
++        webbrowser.open(out_path.resolve().as_uri())
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_dashboard_v2.py around lines 544 - 545, The code calls webbrowser.open(f"file://{out_path}") which concatenates a Path into a file URL (in function/block handling args.open) causing incorrect separators and encoding on some platforms; replace that expression with out_path.resolve().as_uri() so webbrowser.open receives a proper RFC 8089 file:// URL (use the existing out_path variable and keep the args.open/webbrowser.open logic intact).
+
+
+
+Review completed: 41 findings ✔

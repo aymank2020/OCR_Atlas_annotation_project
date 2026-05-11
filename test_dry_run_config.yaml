@@ -1,0 +1,103 @@
+# ==============================================================================
+# Test Dry-Run Configuration
+# إعدادات التجربة بدون ضغط Submit
+# ==============================================================================
+# هذا الملف مخصص لتجربة النظام بشكل آمن قبل التشغيل الفعلي
+# يتم تشغيله باستخدام: py test_dry_run.py
+
+# --- Browser Settings ---
+browser:
+  headless: false                    # false لرؤية ما يحدث في التجربة
+  slow_mo_ms: 200                    # إبطاء الحركة لسهولة المتابعة
+  chrome_channel: "chrome"           # استخدام Chrome العادي
+  storage_state_path: ".state/atlas_auth.json"
+  force_login: false                 # محاولة استخدام الجلسة المحفوظة
+
+  # إعدادات الـ Profile (اختياري)
+  use_chrome_profile: false          # true لاستخدام ملف Chrome الشخصي
+  chrome_user_data_dir: ""           # ضع المسار هنا إذا أردت
+  chrome_profile_directory: "Default"
+  clone_chrome_profile_to_temp: true
+  cloned_user_data_dir: ".state/chrome_user_data_clone"
+  reuse_existing_cloned_profile: true
+
+# --- Atlas Login ---
+atlas:
+  login_url: "https://audit.atlascapture.io"
+  username: ""                       # ضع اسم المستخدم أو اتركه فارغاً
+  password: ""                       # ضع كلمة المرور أو اتركها فارغة
+  otp_enabled: true
+
+  # إعدادات OTP من Gmail
+  gmail_imap_server: "imap.gmail.com"
+  gmail_user: ""                     # بريد Gmail
+  gmail_password: ""                 # كلمة مرور التطبيق
+
+# --- Run Settings (للتجربة) ---
+run:
+  dry_run: true                      # ⚠️ دائماً true في التجربة
+  max_segments: 1                    # تجربة segment واحدة فقط
+  max_episodes_per_run: 1            # حلقة واحدة فقط
+
+  # إعدادات إضافية
+  no_task_retry_count: 2
+  no_task_retry_delay_sec: 3.0
+  keep_alive_when_idle: false        # إيقاف Keep-Alive في التجربة
+  release_all_after_batch: true
+  skip_duplicate_task_in_run: true
+
+# --- Gemini API Settings ---
+gemini:
+  api_key: ""                        # ضع مفتاح Gemini API
+  model: "gemini-2.0-flash-exp"
+  temperature: 0.1
+  top_p: 0.95
+  top_k: 40
+  max_tokens: 8192
+  timeout_sec: 45
+  max_retries: 2
+  retry_delay_sec: 2.0
+
+# --- Test-Specific Settings ---
+test:
+  pause_after_extraction: true       # توقف لمدة 10 ثوانٍ بعد استخراج البيانات
+  show_gemini_response: true         # عرض رد Gemini في الـ Console
+  save_test_results: true            # حفظ نتائج التجربة
+  output_file: "outputs/test_results.jsonl"
+
+  # ملاحظات التجربة
+  test_notes: |
+    هذه تجربة آمنة لاختبار:
+    1. تسجيل الدخول إلى Atlas
+    2. قراءة OTP (إذا لزم)
+    3. استخراج segment واحدة
+    4. إرسالها إلى Gemini
+    5. عرض النتيجة بدون Submit
+
+    النتائج ستُحفظ في outputs/test_results.jsonl
+
+# --- Logging ---
+logging:
+  level: "INFO"
+  file: "outputs/test_dry_run.log"
+  format: "%(asctime)s [%(levelname)s] %(message)s"
+
+# ==============================================================================
+# ملاحظات هامة:
+#
+# 1. تأكد من ملء المعلومات المطلوبة:
+#    - atlas.username / password (أو استخدم storage_state)
+#    - gmail_user / gmail_password (للـ OTP)
+#    - gemini.api_key
+#
+# 2. التشغيل:
+#    py test_dry_run.py --config test_dry_run_config.yaml
+#
+# 3. النتائج:
+#    - ستظهر في Console مباشرة
+#    - ستُحفظ في outputs/test_results.jsonl
+#    - ستظهر التوصيات في النهاية
+#
+# 4. بعد التجربة الناجحة:
+#    - انتقل إلى process_supervisor.py للتشغيل المستمر
+# ==============================================================================

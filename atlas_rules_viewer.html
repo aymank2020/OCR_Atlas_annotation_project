@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlas Knowledge Hub - Rule Viewer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --primary: #3b82f6;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --danger: #ef4444;
+            --success: #10b981;
+            --border: #334155;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 300px;
+            background-color: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-group {
+            margin-bottom: 20px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: #0f172a;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+        }
+
+        .stats-box {
+            margin-top: auto;
+            background: var(--glass-bg);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stats-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 5px 0;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header {
+            padding: 20px 40px;
+            background-color: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rules-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px 40px;
+            display: grid;
+            gap: 15px;
+            align-content: start;
+        }
+
+        .rule-card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .rule-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            border-color: #475569;
+        }
+
+        .rule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .rule-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .author {
+            color: #e2e8f0;
+            font-weight: 500;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background-color: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .badge.verb_policy { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: rgba(16, 185, 129, 0.3); }
+        .badge.hallucination { background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
+        .badge.timestamp_policy { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); }
+
+        .rule-question {
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 8px;
+            font-size: 15px;
+            line-height: 1.5;
+            background: rgba(0,0,0,0.2);
+            padding: 10px 15px;
+            border-left: 3px solid var(--primary);
+            border-radius: 0 4px 4px 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .rule-answer {
+            color: #cbd5e1;
+            line-height: 1.6;
+            font-size: 14px;
+            white-space: pre-wrap;
+            padding: 5px 0;
+        }
+
+        .highlight {
+            background-color: rgba(245, 158, 11, 0.3);
+            color: #ffd166;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+
+        /* Virtual Scrolling Spacer */
+        .loading-state {
+            text-align: center;
+            padding: 50px;
+            color: var(--text-dim);
+            font-size: 18px;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-dim);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+            Atlas Knowledge
+        </div>
+
+        <div class="filter-group">
+            <label>Search Keywords</label>
+            <input type="text" id="searchInput" placeholder="Search rules, verbs, authors...">
+        </div>
+
+        <div class="filter-group">
+            <label>Category Filter</label>
+            <select id="categoryFilter">
+                <option value="all">All Categories</option>
+                <option value="verb_policy">Verb Policy</option>
+                <option value="timestamp_policy">Timestamp Policy</option>
+                <option value="hallucination">Hallucination</option>
+                <option value="object_policy">Object Policy</option>
+                <option value="quality_gate">Quality Gate</option>
+                <option value="numeral_policy">Numeral Policy</option>
+                <option value="intent_policy">Intent Policy</option>
+                <option value="general">General</option>
+            </select>
+        </div>
+
+        <div class="stats-box">
+            <div style="font-size: 12px; color: var(--text-dim); text-transform: uppercase; font-weight: 600;">Active Rules</div>
+            <div class="stats-number" id="statsCount">0</div>
+            <div style="font-size: 12px; color: var(--text-dim);">from Discord/WhatsApp History</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Golden Rules & QA Index</h2>
+            <div id="statusText" style="color: var(--text-dim); font-size: 13px;">Loading...</div>
+        </div>
+
+        <div class="rules-container" id="rulesContainer">
+            <div class="loading-state">Fetching local policy lessons...</div>
+        </div>
+    </div>
+
+    <script>
+        let allRules = [];
+        let filteredRules = [];
+        const container = document.getElementById('rulesContainer');
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const statsCount = document.getElementById('statsCount');
+        const statusText = document.getElementById('statusText');
+
+        // Render Configuration
+        const MAX_INITIAL_RENDER = 100;
+        
+        async function loadRules() {
+            try {
+                // Determine paths robustly, handling IDE or local server cases
+                const response = await fetch('data/knowledge/policy_lessons.jsonl');
+                if (!response.ok) throw new Error('Could not fetch data/knowledge/policy_lessons.jsonl');
+                
+                const text = await response.text();
+                const lines = text.split('\n');
+                
+                allRules = [];
+                for (const line of lines) {
+                    if (line.trim()) {
+                        try {
+                            allRules.push(JSON.parse(line));
+                        } catch (e) {
+                            console.warn("Skipped invalid JSON line");
+                        }
+                    }
+                }
+                
+                // Sort by descending timestamp if available
+                allRules.sort((a,b) => (b.timestamp || "").localeCompare(a.timestamp || ""));
+
+                statusText.innerText = 'Synchronized with local knowledge index.';
+                setTimeout(() => applyFilters(), 10); // Let UI breathe
+
+            } catch (error) {
+                console.error("Fetch/Load error:", error);
+                container.innerHTML = `
+                    <div class="loading-state" style="color: var(--danger);">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 20px;">
+                            <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg><br>
+                        Failed to load Policy Lessons: <b>${error.message}</b><br><br>
+                        <span style="font-size: 14px; opacity: 0.8;">Make sure you are serving via HTTP (<code>python -m http.server</code>). Direct file:// execution blocks fetching local JSON files.</span>
+                    </div>
+                `;
+            }
+        }
+
+        function highlightText(text, term) {
+            if (!term) return text;
+            const regex = new RegExp(`(${term.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        function renderRules(rules) {
+            if (rules.length === 0) {
+                container.innerHTML = `<div class="loading-state">No rules match your filters.</div>`;
+                return;
+            }
+
+            const term = searchInput.value.trim();
+            const fragment = document.createDocumentFragment();
+            
+            // Render top 100 to prevent browser lag (could add virtual scrolling later)
+            const toRender = rules.slice(0, MAX_INITIAL_RENDER);
+
+            toRender.forEach(rule => {
+                const card = document.createElement('div');
+                card.className = 'rule-card';
+
+                const catLabel = rule.category ? rule.category : 'general';
+                const dateRaw = rule.timestamp ? rule.timestamp.split('.')[0].replace('T', ' ') : 'Unknown Date';
+
+                let html = `
+                    <div class="rule-header">
+                        <span class="badge ${catLabel}">${catLabel.replace('_', ' ')}</span>
+                        <div class="rule-meta">
+                            <span class="author">👤 ${rule.author || 'Atlas System'}</span>
+                            <span>🕒 ${dateRaw}</span>
+                        </div>
+                    </div>
+                `;
+
+                if (rule.question && rule.question.length > 5) {
+                    html += `
+                        <div class="rule-question">
+                            <span style="color: var(--primary);">Q:</span>
+                            <div>${highlightText(rule.question, term)}</div>
+                        </div>
+                    `;
+                }
+
+                html += `
+                    <div class="rule-answer">
+                        ${highlightText(rule.answer || rule.raw || "No content", term)}
+                    </div>
+                `;
+
+                card.innerHTML = html;
+                fragment.appendChild(card);
+            });
+
+            container.innerHTML = '';
+            container.appendChild(fragment);
+
+            if (rules.length > MAX_INITIAL_RENDER) {
+                const more = document.createElement('div');
+                more.className = 'loading-state';
+                more.style.padding = '20px';
+                more.style.fontSize = '14px';
+                more.innerText = `...and ${rules.length - MAX_INITIAL_RENDER} more. Enhance your search term to see specific results.`;
+                container.appendChild(more);
+            }
+        }
+
+        function applyFilters() {
+            const term = searchInput.value.toLowerCase().trim();
+            const cat = categoryFilter.value;
+
+            filteredRules = allRules.filter(r => {
+                // Category match
+                if (cat !== 'all') {
+                    const ruleCat = r.category || 'general';
+                    if (ruleCat !== cat) return false;
+                }
+
+                // Text search match
+                if (term) {
+                    const blob = `${r.question || ''} ${r.answer || ''} ${r.raw || ''} ${r.author || ''}`.toLowerCase();
+                    if (!blob.includes(term)) return false;
+                }
+
+                return true;
+            });
+
+            statsCount.innerText = filteredRules.length;
+            renderRules(filteredRules);
+        }
+
+        // Event Listeners
+        let debounceTimer;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(applyFilters, 250);
+        });
+
+        categoryFilter.addEventListener('change', applyFilters);
+
+        // Init
+        loadRules();
+    </script>
+</body>
+</html>

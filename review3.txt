@@ -1,0 +1,873 @@
+Starting CodeRabbit review in plain text mode...
+
+Connecting to review service
+Setting up
+Analyzing
+Reviewing
+
+============================================================================
+File: atlas/shared/io.py
+Line: 1 to 6
+Type: potential_issue
+
+Comment:
+Remove unused import os.
+
+The os module is imported but never used in this file.
+
+
+
+📝 Proposed fix
+
+ import json
+-import os
+ from datetime import datetime, timezone
+ from pathlib import Path
+ from typing import Any, Dict, List, Optional, Union
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas/shared/io.py around lines 1 - 6, The import list at the top of atlas/shared/io.py includes an unused symbol "os"; remove the unused import to clean up imports—specifically delete the "import os" entry from the module's imports (near the existing imports for json, datetime, Path, typing) so only used modules remain.
+
+
+
+============================================================================
+File: .agent/commands/speckit.analyze.md
+Line: 112
+Type: potential_issue
+
+Comment:
+Minor grammar fix: "other" → "another"
+
+The phrase "while other specifies" should be "while another specifies" for grammatical correctness.
+
+
+
+📝 Proposed fix
+
+-- Conflicting requirements (e.g., one requires Next.js while other specifies Vue)
++- Conflicting requirements (e.g., one requires Next.js while another specifies Vue)
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @.agent/commands/speckit.analyze.md at line 112, Update the sentence fragment "Conflicting requirements (e.g., one requires Next.js while other specifies Vue)" to use "another" instead of "other" so it reads "Conflicting requirements (e.g., one requires Next.js while another specifies Vue)"; locate and edit that exact text in .agent/commands/speckit.analyze.md (the line containing "Conflicting requirements (e.g., one requires Next.js while other specifies Vue)").
+
+
+
+============================================================================
+File: specs/001-4way-episode-solver/spec.md
+Line: 33 to 35
+Type: potential_issue
+
+Comment:
+Fix formatting and capitalization error in acceptance scenario 3.
+
+Line 33 has inconsistent formatting: missing space after "3.", incorrect capitalization "gIVEN", and "او" should be "أو" for consistency.
+
+
+
+📝 Proposed fix
+
+-3.gIVEN نجمع الحلول الاربعة ونقارنهم ببعض ونختار الافضل او ننشئ حل جديد فيه مجموع ما تم حله من كل طريقة  WHEN يتم تشغيل 4-way pipeline, Then طريقة واحدة على الأقل تنتج حل بجودة ≥95%.
++3. Given نجمع الحلول الاربعة ونقارنهم ببعض ونختار الافضل أو ننشئ حل جديد فيه مجموع ما تم حله من كل طريقة, When يتم تشغيل 4-way pipeline, Then طريقة واحدة على الأقل تنتج حل بجودة ≥95%.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @specs/001-4way-episode-solver/spec.md around lines 33 - 35, Scenario line labeled "3." has formatting and capitalization errors; update the text for scenario 3 so it reads with a space after "3.", normalize "gIVEN" to "Given" (title-case), and replace the Arabic "او" with the proper character "أو" for consistency; ensure the rest of the phrase mentioning "4-way pipeline" and the ≥95% threshold remains unchanged so the acceptance criteria are preserved.
+
+
+
+============================================================================
+File: specs/001-4way-episode-solver/data-model.md
+Line: 20 to 26
+Type: potential_issue
+
+Comment:
+Verify segment_index indexing convention.
+
+Line 22 states segment_index is "0-based", but validator.py (lines 745-746) renumbers segments starting at 1:
+for idx, seg in enumerate(segments, start=1):
+    seg["segment_index"] = idx
+
+
+This inconsistency could cause confusion. Update the documentation to reflect the actual 1-based indexing used in the codebase.
+
+
+
+📝 Proposed fix
+
+ | Field | Type | Constraints |
+ |-------|------|-------------|
+-| segment_index | int | 0-based, unique within episode |
++| segment_index | int | 1-based, unique within episode |
+ | start_sec | float | ≥ 0,
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @specs/001-4way-episode-solver/data-model.md around lines 20 - 26, The docs claim segment_index is 0-based but the code in validator.py renumbers segments with enumerate(..., start=1) and assigns seg["segment_index"] = idx, so update the data-model.md entry for segment_index to state it is 1-based (unique within episode) to match the implementation; ensure the constraint description and any examples reflect 1-based indexing.
+
+
+
+============================================================================
+File: atlas_triplet_compare.py
+Line: 2237 to 2241
+Type: potential_issue
+
+Comment:
+Fix bare except: clause - use except Exception: instead.
+
+Line 2240 uses a bare except: which catches all exceptions including KeyboardInterrupt and SystemExit, which should typically propagate.
+
+
+🐛 Proposed fix
+
+     finally:
+         try:
+             chat_page.close()
+-        except:
++        except Exception:
+             pass
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_triplet_compare.py around lines 2237 - 2241, Replace the bare except in the finally block that wraps chat_page.close() so it only catches regular exceptions; change the handler to "except Exception:" (or a more specific exception if appropriate) and optionally log the exception before ignoring it. Locate the finally block surrounding the call to chat_page.close() and update the except clause to "except Exception:" to avoid intercepting BaseException subclasses like KeyboardInterrupt/SystemExit while still protecting against standard runtime errors.
+
+
+
+============================================================================
+File: atlas_eval_store.py
+Line: 120 to 123
+Type: potential_issue
+
+Comment:
+Printed path may not exist if text file write failed.
+
+Since exceptions in _write_episode_eval_text_file are silently swallowed, the path printed here may not correspond to an actual file, misleading automation consumers.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_eval_store.py around lines 120 - 123, The printed eval_file path can be misleading because exceptions in _write_episode_eval_text_file are swallowed; move or change the print so it only occurs after a successful write (or verify the file exists before printing). Specifically, after calling _write_episode_eval_text_file(eid, ...) check its success/return value or use Path.exists() on eval_file and then call print(f"[eval-store] eval_text_file: {eval_file.resolve()}"); if the write failed, log or raise an error instead. Ensure you reference eid, eval_file, and _write_episode_eval_text_file when locating and updating the logic.
+
+
+
+============================================================================
+File: sample_web_auto_solver_production.yaml.save
+Line: 29
+Type: potential_issue
+
+Comment:
+Duplicate segment_chunking_enabled key with conflicting values.
+
+segment_chunking_enabled is set to true on line 29 and false on line 68. YAML parsers typically use the last occurrence, so the effective value is false. This is confusing and should be consolidated into a single definition.
+
+
+🐛 Proposed fix - remove duplicate or consolidate
+
+Remove line 29 if the intended behavior is "full-video-first with chunking fallback":
+
+   rag_few_shot_min_score: 0.15
+-  segment_chunking_enabled: true
+-  segment_chunking_temporal_anchor_enabled: true
+   object_identity_guard_enabled: true
+
+
+Or remove lines 67-69 if chunking should be enabled by default.
+
+
+
+Also applies to: 68-68
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @sample_web_auto_solver_production.yaml.save at line 29, There are two conflicting definitions of the YAML key segment_chunking_enabled (one true, one false); remove the duplicate and consolidate into a single definition with the intended value (either keep segment_chunking_enabled: true for chunking-by-default or keep segment_chunking_enabled: false for full-video-first), and delete the other occurrence so the file has only one segment_chunking_enabled entry.
+
+
+
+============================================================================
+File: .agent/skills/speckit-analyze/SKILL.md
+Line: 121
+Type: potential_issue
+
+Comment:
+Minor grammatical issue: "other" should be "another" or "the other".
+
+The phrase "one requires Next.js while other specifies Vue" is missing an article.
+
+
+📝 Suggested fix
+
+-- Conflicting requirements (e.g., one requires Next.js while other specifies Vue)
++- Conflicting requirements (e.g., one requires Next.js while another specifies Vue)
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @.agent/skills/speckit-analyze/SKILL.md at line 121, The sentence "one requires Next.js while other specifies Vue" has a missing article; update that sentence in SKILL.md by replacing "other" with either "another" or "the other" (e.g., "one requires Next.js while another specifies Vue") so the grammar is correct and reads naturally.
+
+
+
+============================================================================
+File: .agent/commands/speckit.plan.md
+Line: 70
+Type: potential_issue
+
+Comment:
+Inconsistency: References "Phase 2" but only Phase 0 and Phase 1 are defined.
+
+Same issue as in the skill file - step 4 mentions "Phase 2 planning" but the Phases section only defines Phase 0 and Phase 1.
+
+
+📝 Suggested fix
+
+-4. Stop and report: Command ends after Phase 2 planning. Report branch, IMPL_PLAN path, and generated artifacts.
++4. Stop and report: Command ends after Phase 1 planning. Report branch, IMPL_PLAN path, and generated artifacts.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @.agent/commands/speckit.plan.md at line 70, The "Stop and report" step references "Phase 2 planning" while the document only defines Phase 0 and Phase 1; update the text so it is consistent by either changing "Phase 2 planning" to "Phase 1 planning" in the "Stop and report" step or add a missing Phase 2 entry under the Phases section (matching the intended behavior). Locate the "Stop and report" line and the Phases section where "Phase 0" and "Phase 1" are defined (references: "Stop and report", "Phase 0", "Phase 1") and apply the chosen fix so the phase names align.
+
+
+
+============================================================================
+File: .claude/commands/speckit.plan.md
+Line: 70
+Type: potential_issue
+
+Comment:
+Inconsistency: References "Phase 2" but only Phase 0 and Phase 1 are defined.
+
+Consistent with other speckit.plan files - should reference Phase 1 instead.
+
+
+📝 Suggested fix
+
+-4. Stop and report: Command ends after Phase 2 planning. Report branch, IMPL_PLAN path, and generated artifacts.
++4. Stop and report: Command ends after Phase 1 planning. Report branch, IMPL_PLAN path, and generated artifacts.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @.claude/commands/speckit.plan.md at line 70, Update the inconsistent phase reference in the "Stop and report" step: replace the mention of "Phase 2" with "Phase 1" so the step reads that the command ends after Phase 1 planning and reports branch, IMPL_PLAN path, and generated artifacts; search for the "Stop and report" heading or the literal "Phase 2" string near the IMPL_PLAN/branch description and update it to "Phase 1".
+
+
+
+============================================================================
+File: sample_web_auto_solver_production.yaml.save
+Line: 2
+Type: potential_issue
+
+Comment:
+Remove escaped backslash before comment.
+
+Line 2 has \# which appears to be an unintended escape. YAML comments use plain #.
+
+
+🐛 Proposed fix
+
+-\# ═══════════════════════════════════════════════════════════════════════
++# ═══════════════════════════════════════════════════════════════════════
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @sample_web_auto_solver_production.yaml.save at line 2, Remove the unintended escape before the YAML comment: replace the sequence "\#" at the start of the header line with a plain "#" so the line begins with "#" (e.g., change "\# ═══..." to "# ═══...") ensuring it is a valid YAML comment; update the same header line where the escaped backslash appears.
+
+
+
+============================================================================
+File: sample_web_auto_solver.yaml
+Line: 208 to 209
+Type: potential_issue
+
+Comment:
+gemini-3.1-pro-preview is valid but deprecated—will be shut down March 9, 2026.
+
+The model is officially documented in Google's Gemini API but Gemini 3 Pro is scheduled for deprecation/shutdown as of March 2026. This affects critical operations across multiple configs: chat_timed_model, vertex_chat_model, policy_retry_model in sample_web_auto_solver.yaml (lines 208–209, 269) and similar locations in production configs and other YAML files. Plan migration to gemini-2.5-flash, gemini-2.5-pro, or other supported alternatives.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @sample_web_auto_solver.yaml around lines 208 - 209, Replace deprecated gemini-3.1-pro-preview entries with supported Gemini 2.5 models across the YAML: update the keys chat_timed_model and vertex_chat_model (and any policy_retry_model occurrences) to use an approved alternative such as gemini-2.5-flash or gemini-2.5-pro; search the repo for the symbols chat_timed_model, vertex_chat_model, and policy_retry_model to locate all instances (including sample_web_auto_solver.yaml and other config files) and perform a find-and-replace, ensuring any environment-specific overrides or comments are updated to reflect the new model choice.
+
+
+
+============================================================================
+File: atlas_eval_store.py
+Line: 43 to 52
+Type: potential_issue
+
+Comment:
+Path traversal vulnerability: episode_id used verbatim in path composition.
+
+The eid value is used directly to construct target_dir and out_path. Malicious inputs like ../foo or absolute paths would write files outside outputs_dir/chat_reviews/.
+
+
+
+🛡️ Proposed fix: validate episode_id before path composition
+
+ def _write_episode_eval_text_file(outputs_dir: Path, episode_id: str, text: str) -> Optional[Path]:
+     eid = str(episode_id or "").strip().lower()
+     if not eid:
+         return None
++    # Reject unsafe episode_id values to prevent path traversal
++    if not re.fullmatch(r"[a-z0-9_-]+", eid):
++        return None
+     target_dir = outputs_dir / "chat_reviews" / eid
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_eval_store.py around lines 43 - 52, The function _write_episode_eval_text_file currently uses episode_id (eid) directly in path composition, enabling path traversal; validate/sanitize episode_id before building target_dir/out_path by rejecting empty or malicious values and normalizing to a safe filename: ensure eid is not an absolute path, contains no path separators or "..", and matches an allowed pattern (e.g., lowercase alphanumeric, hyphen, underscore) and a reasonable max length; if validation fails, return None or raise. Use the sanitized token for target_dir/out_path (keep variable names eid/target_dir/out_path) so writes are confined under outputs_dir.
+
+
+
+============================================================================
+File: atlas_eval_store.py
+Line: 89 to 92
+Type: potential_issue
+
+Comment:
+Silent exception swallowing loses audit trail.
+
+If _write_episode_eval_text_file() fails (e.g., disk full, permissions), the exception is silently swallowed while the JSON upsert reports success. This leaves artifacts out of sync with no signal to the caller.
+
+
+
+🛠️ Proposed fix: log the failure or propagate it
+
+     try:
+         _write_episode_eval_text_file(outputs_dir, eid, text)
+-    except Exception:
+-        pass
++    except Exception as exc:
++        print(f"[eval-store] warn: text file write failed for {eid}: {exc}")
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_eval_store.py around lines 89 - 92, The try/except around _write_episode_eval_text_file is silently swallowing errors causing JSON upsert to report success even when file write fails; update the except block that catches exceptions from _write_episode_eval_text_file to either re-raise the caught exception or log the failure with full exception details (e.g., using the module logger or raise) so callers/auditors see disk/permission errors—modify the except in the block that calls _write_episode_eval_text_file (where outputs_dir, eid, text are used) to include logger.error(..., exc_info=True) or simply raise the exception after logging.
+
+
+
+============================================================================
+File: submit_gate.py
+Line: 279 to 292
+Type: potential_issue
+
+Comment:
+Potential TypeError when winner_score is None.
+
+At line 288, int(round(winner_score)) is called, but winner_score can be None if the winner key wasn't found in scores. This would raise TypeError: type NoneType doesn't define __round__ method.
+
+
+
+🐛 Proposed fix
+
+             return SubmitGateResult(
+                 episode_id=eid, safe=False, winner=winner,
+                 reason="validator_no_segments_parsed",
+                 reason_detail=(
+                     f"Could not parse any segments from winner file: '{winner_path}'. "
+                     "Cannot run deterministic validation. Blocking as precaution."
+                 ),
+-                score_pct=int(round(winner_score)),
++                score_pct=int(round(winner_score)) if winner_score is not None else None,
+                 validator_ok=False,
+                 llm_hallucination_flag=llm_hall,
+                 checks_performed=checks,
+             )
+
+
+Apply the same fix at lines 312, 325, 340, 369, and 385.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @submit_gate.py around lines 279 - 292, The code calls int(round(winner_score)) when building a SubmitGateResult, which will raise a TypeError if winner_score is None; change the construction of score_pct to handle None safely (e.g., score_pct=int(round(winner_score)) if winner_score is not None else 0 or None as appropriate) wherever SubmitGateResult is created using winner_score; update all other occurrences in this file that set score_pct via int(round(winner_score)) to use the same None-safe conditional.
+
+
+
+============================================================================
+File: atlas_discord_bot.py
+Line: 29 to 32
+Type: potential_issue
+
+Comment:
+Use raise ... from err to preserve exception context.
+
+When re-raising an exception within an except block, use raise ... from err to maintain the exception chain for better debugging.
+
+
+
+
+🔧 Proposed fix
+
+ try:
+     import discord
+ except ImportError:
+-    raise RuntimeError("discord.py package not installed. Run: pip install discord.py")
++    raise RuntimeError("discord.py package not installed. Run: pip install discord.py") from None
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_discord_bot.py around lines 29 - 32, Update the ImportError handling in the try/except that wraps the discord import: change the except clause to capture the original exception (e.g., except ImportError as err) and re-raise the RuntimeError using "raise RuntimeError(... ) from err" so the original traceback is preserved; modify the block around the discord import in atlas_discord_bot.py (the try/import discord except block) accordingly.
+
+
+
+============================================================================
+File: atlas_discord_bot.py
+Line: 131
+Type: potential_issue
+
+Comment:
+datetime.utcnow() is deprecated in Python 3.12+.
+
+Use datetime.now(timezone.utc) instead for timezone-aware UTC timestamps, which is the modern and recommended approach.
+
+
+
+
+🔧 Proposed fix
+
++from datetime import datetime, timezone
++
+ export_data = {
+-    "exported_at": datetime.utcnow().isoformat(),
++    "exported_at": datetime.now(timezone.utc).isoformat(),
+     "messages": self.knowledge_buffer.copy()
+ }
+
+
+Note: timezone is already imported on line 25, so you just need to update the call.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_discord_bot.py at line 131, The timestamp assigned to "exported_at" uses the deprecated datetime.utcnow(); update the value to use a timezone-aware UTC timestamp by replacing datetime.utcnow().isoformat() with datetime.now(timezone.utc).isoformat() in the exported_at assignment (timezone is already imported).
+
+
+
+============================================================================
+File: atlas_dynamic_rag.py
+Line: 94 to 106
+Type: potential_issue
+
+Comment:
+Critical bug: scored referenced outside its defining scope.
+
+When lessons is empty/falsy, the code at line 94 evaluates to False, skipping the block that defines scored. However, line 103 (scored.sort(...)) executes unconditionally, causing a NameError.
+
+
+
+🐛 Proposed fix
+
+         # 2. Retrieve Policy Lessons (The "Audit Brain")
+         lessons = self._load_all(self.lessons_path)
++        scored = []
+         if lessons:
+-            scored = []
+             for l in lessons:
+                 if l.get("category") in self.universal_categories:
+                     scored.append((1000, l))
+                 else:
+                     text = f"{l.get('question', '')} {l.get('answer', '')}"
+                     scored.append((_score_against_video(text, keywords), l))
+-            
+-        scored.sort(key=lambda x: x[0], reverse=True)
++
++        if scored:
++            scored.sort(key=lambda x: x[0], reverse=True)
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_dynamic_rag.py around lines 94 - 106, The NameError happens because scored is only created inside the if lessons: block but later used unconditionally; initialize scored = [] before the if or move the subsequent logic (scored.sort, top_items, top) inside the same conditional so scored is always defined; reference the variables scored, lessons, _score_against_video, max_lessons, self.universal_categories, top_items and top when making the change so the sort and slicing operate on a defined list even when lessons is falsy.
+
+
+
+============================================================================
+File: atlas_web_auto_solver.py
+Line: 11808 to 11810
+Type: potential_issue
+
+Comment:
+Drop the empty f prefixes here.
+
+These strings don’t interpolate anything, so Ruff reports F541 on them. If lint is enforced, this PR won’t go green.
+
+
+
+
+Also applies to: 12081-12087
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_web_auto_solver.py around lines 11808 - 11810, Remove unused f-string prefixes on the non-interpolated string literals to fix the F541 lint error: in the block that builds error_text (the expression error_text += f"Errors:\n" + "\n".join(f"- {e}" for e in current_raw_errors) + "\n\n") and the unconditional hybrid review print (print(f"[policy] API pass was error-free. Doing unconditional hybrid Vertex Chat review for 100% quality...")), drop the leading "f" so they become plain string literals; apply the same change to the other occurrences referenced around the code section marked 12081-12087.
+
+
+
+============================================================================
+File: atlas_web_auto_solver.py
+Line: 846 to 852
+Type: potential_issue
+
+Comment:
+Remove the email debug log before release.
+
+This writes account-identifying data on every run. Even partially masked email fragments are still PII and shouldn’t be emitted by default.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_web_auto_solver.py around lines 846 - 852, Remove the PII debug print in _resolve_atlas_email that emits parts of the resolved email (the print call using res[:4]...); delete that print statement and ensure the function simply returns res, or if logging is required use a non-PII-safe log (e.g., a boolean or fully masked token) instead of printing email fragments; verify callers of _resolve_atlas_email still work with the unchanged return value.
+
+
+
+============================================================================
+File: atlas_web_auto_solver.py
+Line: 667 to 680
+Type: potential_issue
+
+Comment:
+Don’t silently fall back to API-key mode for unknown gemini.auth_mode values.
+
+aliases.get(mode, "api_key") turns typos into a different auth path. A value like vertex-ai or any misspelling will ignore the Vertex settings and use the wrong credentials/quota pool instead of failing fast.
+
+
+
+
+Suggested fix
+
+ def _normalize_gemini_auth_mode(raw: str) -> str:
+     mode = str(raw or "").strip().lower()
+     aliases = {
+         "": "api_key",
+         "api": "api_key",
+         "apikey": "api_key",
+         "api_key": "api_key",
+         "google_api_key": "api_key",
+         "vertex": "vertex_ai",
++        "vertex-ai": "vertex_ai",
+         "vertexai": "vertex_ai",
+         "vertex_ai": "vertex_ai",
+         "service_account": "vertex_ai",
++        "service-account": "vertex_ai",
+     }
+-    return aliases.get(mode, "api_key")
++    if mode in aliases:
++        return aliases[mode]
++    raise ValueError(f"Unsupported gemini.auth_mode: {raw}")
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_web_auto_solver.py around lines 667 - 680, The _normalize_gemini_auth_mode function currently maps unknown/typoed modes to "api_key"; change it to fail fast instead: look up the normalized mode in the aliases dict and if present return the mapped value, otherwise raise a ValueError (or custom exception) that lists the supported aliases (e.g., "", "api", "apikey", "api_key", "google_api_key", "vertex", "vertexai", "vertex_ai", "service_account") so callers immediately know the invalid value and valid options; update any callers if they expect a default behavior to handle the exception appropriately.
+
+
+
+============================================================================
+File: atlas_web_auto_solver.py
+Line: 9126 to 9149
+Type: potential_issue
+
+Comment:
+Dry-run merge simulation is collapsing the wrong neighbor.
+
+The merge simulator usually removes list_idx + 1, but the rest of the codebase builds merge ops as “merge current row into previous row”. That means dry-run validation and text artifacts can diverge from what Atlas will actually do.
+
+
+
+
+Suggested fix
+
+         if action == "delete":
+             segs.pop(list_idx)
+         elif action == "merge":
+-            if list_idx + 1 = 0:
+-                prev_seg = segs.pop(list_idx)
+-                segs[list_idx - 1]["end_sec"] = prev_seg.get("end_sec", segs[list_idx - 1].get("end_sec"))
++            if list_idx - 1 >= 0:
++                current_seg = segs.pop(list_idx)
++                segs[list_idx - 1]["end_sec"] = current_seg.get(
++                    "end_sec",
++                    segs[list_idx - 1].get("end_sec"),
++                )
+         elif action == "split":
+             new_seg = copy.deepcopy(segs[list_idx])
+             segs.insert(list_idx + 1, new_seg)
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_web_auto_solver.py around lines 9126 - 9149, The merge branch in _apply_operations_in_memory is collapsing the next neighbor (list_idx + 1) but the rest of the system treats a "merge" as "merge current row into previous row"; change the logic so that when action == "merge" you prefer to merge the current segment into the previous segment: if list_idx - 1 >= 0, pop the current segment (segs.pop(list_idx)) and update segs[list_idx - 1]["end_sec"] from the popped segment; only if there is no previous segment and a next segment exists fall back to merging with the next (pop list_idx + 1 and update segs[list_idx]["end_sec"]). Keep using segs, list_idx, prev_seg/next_seg and preserve deep copy behavior and the final segment_index re-indexing.
+
+
+
+============================================================================
+File: prompts/atlas_vertex_context_pack.txt
+Line: 40 to 50
+Type: potential_issue
+
+Comment:
+Make the few-shot verdicts content-consistent.
+
+In Examples 1-3, the API and Chat candidate annotations are verbatim identical, but the reference verdicts assign them very different scores and hallucination flags. That trains source bias into the judge and undermines content-based evaluation.
+
+
+
+Also applies to: 58-87, 94-100, 106-134, 141-155, 161-191
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @prompts/atlas_vertex_context_pack.txt around lines 40 - 50, The reference verdicts for the few-shot examples are inconsistent with the candidate annotations: when the API and Chat candidate annotations are verbatim identical (e.g., Examples 1-3) they were given different scores/hallucination flags, which trains source bias; update the "reference verdicts" for the affected examples so that identical candidate content receives identical scores and hallucination flags, and apply the same correction to the other listed ranges (58-87, 94-100, 106-134, 141-155, 161-191); locate and edit the few-shot verdict entries in prompts/atlas_vertex_context_pack.txt (the reference verdict blocks corresponding to Examples 1-3 and the other ranges) to ensure consistency across API and Chat candidate annotations.
+
+
+
+============================================================================
+File: .claude/commands/speckit.checklist.md
+Line: 95 to 98
+Type: potential_issue
+
+Comment:
+Keep cleanup outside the append-only workflow.
+
+Lines 95-98 say checklist files are append-only and must never be deleted or replaced, but Line 221 tells the agent to clean up obsolete checklists. That conflict can push the command into deleting the same history it is supposed to preserve.
+
+
+📝 Suggested wording
+
+-To avoid clutter, use descriptive types and clean up obsolete checklists when done.
++To avoid clutter, use descriptive types.
++Do not delete existing checklist files from this command; any cleanup should be a separate manual step outside the append-only workflow.
+
+
+
+
+Also applies to: 221-221
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @.claude/commands/speckit.checklist.md around lines 95 - 98, The file currently conflicts: the append-only rules ("If file does NOT exist: Create new file...", "Never delete or replace existing checklist content - always preserve and append") contradict the later "clean up obsolete checklists" instruction; change the cleanup instruction so it does not delete or modify existing checklist files directly — instead instruct agents to mark obsolete entries or create a separate archive record (e.g., add an "OBSOLETE" entry or metadata line) and/or perform any physical deletion only in a distinct archival workflow outside the append-only checklist process; update the wording around "clean up obsolete checklists" to explicitly preserve history and reference the append-only policy.
+
+
+
+============================================================================
+File: atlas_auto_sync_and_rebuild.py
+Line: 198 to 207
+Type: potential_issue
+
+Comment:
+Don't expose the whole host /tmp through outputs/.
+
+Symlinking /tmp into a served document root makes unrelated temp files reachable from the review server, not just snapshot assets. Stage only the files the viewer actually needs into a dedicated subdirectory instead.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_auto_sync_and_rebuild.py around lines 198 - 207, Replace the unsafe symlink of the entire host /tmp (the tmp_link variable created from outputs_dir / "tmp" and the symlink_to(Path("/tmp"))) with a dedicated, controlled staging directory (e.g., outputs_dir / "tmp_assets") and populate only the specific viewer-required files into that directory; update the logic where tmp_link is created so it makes the staging directory if missing and copies or hardlinks the snapshot asset files the viewer needs into it (instead of symlinking Path("/tmp")), and keep the OS check and exception handling around the new creation/copy steps.
+
+
+
+============================================================================
+File: vertex_create_cache.py
+Line: 61 to 67
+Type: potential_issue
+
+Comment:
+Catch only file-read failures in _try_read_file.
+
+Swallowing bare Exception hides programming errors just as readily as missing-file cases. Restrict this handler to I/O/decoding failures so bad inputs still surface.
+
+
+🔧 Suggested fix
+
+ def _try_read_file(path: Path) -> str:
+     if not path.exists() or not path.is_file():
+         return ""
+     try:
+         return _read_text(path).strip()
+-    except Exception:
++    except (OSError, UnicodeDecodeError):
+         return ""
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @vertex_create_cache.py around lines 61 - 67, The _try_read_file function currently catches all Exceptions which hides programming errors; change the except clause to only catch I/O and decoding failures (e.g., except (OSError, UnicodeDecodeError):) so that failures from _read_text or filesystem issues still return "" but other errors are propagated; keep the initial exists/is_file guard and the call to _read_text(path).strip(), and do not swallow other exception types so bugs surface.
+
+
+
+============================================================================
+File: vertex_create_cache.py
+Line: 226 to 238
+Type: potential_issue
+
+Comment:
+Only retry on global for location-specific failures.
+
+The current status != 200 branch retries auth and validation errors that will not be fixed by switching regions, which doubles failing calls and blurs the original cause. Limit this fallback to clearly regional failures.
+
+
+🔧 Suggested fix
+
+-    if status != 200 and location != "global":
++    retry_on_global = location != "global" and (
++        status in (404, 503) or "location" in text.lower() or "region" in text.lower()
++    )
++    if retry_on_global:
+         print(f"[warn] create cache failed on location={location} (HTTP {status}), retrying on global...")
+         status, text = _post_cached_content(
+             project=project,
+             location="global",
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @vertex_create_cache.py around lines 226 - 238, The code currently retries on global for any non-200 status; change the condition so the fallback to location="global" only happens for regional/availability errors (e.g., 404, 502, 503, 504, 429) and not for auth/validation errors (e.g., 400, 401, 403, 422). Update the if that checks status and location to something like: if location != "global" and status in {404, 429, 502, 503, 504}: then call _post_cached_content(...) and set used_location="global"; leave other non-200 statuses to propagate without a region fallback. Ensure you reference the existing variables and function names (_post_cached_content, status, location, used_location) when making the change.
+
+
+
+============================================================================
+File: vertex_create_cache.py
+Line: 263 to 266
+Type: potential_issue
+
+Comment:
+Guard the success-path JSON parse.
+
+A 200 response with non-JSON text from a proxy or intermediary will crash here after the request already “succeeded.” Parse defensively and report used_location plus the raw body before exiting.
+
+
+🔧 Suggested fix
+
+-    data = json.loads(text)
++    try:
++        data = json.loads(text)
++    except json.JSONDecodeError as exc:
++        print(f"[error] invalid JSON response from location={used_location}: {exc}")
++        print(text[:4000])
++        raise SystemExit(1)
+     print("CACHE_NAME=", data.get("name", ""))
+     print("LOCATION_USED=", used_location)
+     print(json.dumps(data, ensure_ascii=False, indent=2)[:4000])
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @vertex_create_cache.py around lines 263 - 266, Wrap the JSON parse of text into a defensive try/except: instead of calling json.loads(text) directly, catch JSONDecodeError/ValueError around the json.loads in the block that contains variables data, text, and used_location; on decode failure log/print a clear error message that includes used_location and the raw response body (or a truncated substring) so you can see the non-JSON payload, then bail the success path (raise or return an error) rather than letting the code continue assuming data exists. Ensure the logs mention "CACHE_NAME=" and the raw body as before so the same diagnostic output is preserved when JSON parsing fails.
+
+
+
+============================================================================
+File: vertex_create_cache.py
+Line: 162 to 178
+Type: potential_issue
+
+Comment:
+Resolve vertex_credentials_path relative to the config file.
+
+gemini.context_file is normalized against cfg_dir, but vertex_credentials_path is resolved against the current working directory. Running the script outside the repo root will break valid relative config paths.
+
+
+🔧 Suggested fix
+
+     if not cred_raw:
+         raise RuntimeError(
+             "Missing Vertex credentials path. Set gemini.vertex_credentials_path, "
+             "GOOGLE_APPLICATION_CREDENTIALS in env, or .env."
+         )
+ 
+-    cred_path = Path(cred_raw).resolve()
++    cfg_dir = cfg_path.parent
++    cred_path = Path(cred_raw)
++    if not cred_path.is_absolute():
++        cred_path = (cfg_dir / cred_path).resolve()
++    else:
++        cred_path = cred_path.resolve()
+     if not cred_path.exists():
+         raise FileNotFoundError(f"Credentials file not found: {cred_path}")
+-
+-    cfg_dir = cfg_path.parent
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @vertex_create_cache.py around lines 162 - 178, The code currently builds cred_raw from gem.get("vertex_credentials_path", ...) and then resolves it against the current working directory (cred_path = Path(cred_raw).resolve()), which breaks when the config (gemini.context_file / cfg_dir) is elsewhere; update the resolution so that if the credential path is relative (not absolute), you resolve it relative to the config directory (use the same base as gemini.context_file / cfg_dir) before calling Path(...).resolve(); update handling around cred_raw/cred_path and the FileNotFoundError check to use that resolved path so relative paths in vertex_credentials_path are interpreted relative to the config file location.
+
+
+
+============================================================================
+File: atlas_web_auto_solver.py
+Line: 794 to 805
+Type: potential_issue
+
+Comment:
+file_uri is not translated to REST format, and GCS uploads ignore the configured credentials path.
+
+_translate_payload_for_vertex() (lines 794–809) lacks a mapping for file_uri → fileUri, so the GCS video payload returned by _build_gcs_video_parts() (line 7225) stays in snake_case in the final REST request.
+
+Additionally, _build_gcs_video_parts() (line 7218) creates storage.Client() without passing credentials, relying only on Application Default Credentials. This means gemini.vertex_credentials_path works for Vertex API auth but is ignored for GCS uploads, causing failures when ADC is unavailable.
+
+Fix: Add file_uri → fileUri mapping in the translation function and pass credentials to the GCS client:
+
+
+Suggested changes
+
+ def _translate_payload_for_vertex(value: Any) -> Any:
+     if isinstance(value, dict):
+         out: Dict[str, Any] = {}
+         for key, item in value.items():
+             mapped = key
+             if key == "inline_data":
+                 mapped = "inlineData"
+             elif key == "file_data":
+                 mapped = "fileData"
+             elif key == "mime_type":
+                 mapped = "mimeType"
++            elif key == "file_uri":
++                mapped = "fileUri"
+             out[mapped] = _translate_payload_for_vertex(item)
+         return out
+
+
+ def _build_gcs_video_parts(vfile: Path, config: Dict[str, Any]) -> List[Dict[str, Any]]:
+     bucket_name = str(_cfg_get(config, "gemini.gcs_video_bucket", "")).strip()
+     if not bucket_name:
+         raise ValueError("gemini.gcs_video_bucket is not configured")
+     
+     try:
+         from google.cloud import storage
+     except ImportError:
+         raise RuntimeError("google-cloud-storage is not installed. Run: pip install google-cloud-storage")
+-    
++    
++    credentials_path = _resolve_vertex_credentials_path(config)
++    if credentials_path:
++        from google.cloud import storage as storage_with_creds
++        creds = storage_with_creds.Client.from_service_account_json(credentials_path)
++        project_id = _resolve_vertex_project(config)
++        client = storage_with_creds.Client(project=project_id or creds.project_id, credentials=creds)
++    else:
++        project_id = str(_cfg_get(config, "gemini.vertex_project", "")).strip()
++        client = storage.Client(project=project_id) if project_id else storage.Client()
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_web_auto_solver.py around lines 794 - 805, _update the REST payload translator and GCS client creation: add a mapping in _translate_payload_for_vertex so the key "file_uri" is translated to "fileUri" (alongside the existing inline_data/file_data/mime_type mappings) to ensure GCS video payloads are sent in camelCase, and update _build_gcs_video_parts to instantiate the GCS client with explicit credentials loaded from the configured gemini.vertex_credentials_path (pass those credentials into storage.Client rather than relying on ADC); ensure you load Service Account credentials (e.g., via google.oauth2.service_account.Credentials.from_service_account_file or equivalent) and pass them into storage.Client to respect the configured credentials path.
+
+
+
+Review completed: 30 findings ✔

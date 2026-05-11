@@ -1,0 +1,21 @@
+[Unit]
+Description=Atlas command hub (local-only)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=atlas
+WorkingDirectory=/srv/atlas/OCR_annotation_Atlas
+EnvironmentFile=-/srv/atlas/OCR_annotation_Atlas/.env
+Environment=PYTHONUNBUFFERED=1
+Environment=HUB_HOST=127.0.0.1
+Environment=HUB_PORT=8500
+ExecStart=/srv/atlas/OCR_annotation_Atlas/run_command_hub_local.sh
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
