@@ -1,0 +1,113 @@
+{
+  "http_status": 200,
+  "raw": {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "{\n  \"project_name\": \"OCR_annotation_Atlas\",\n  \"generated_at\": \"2026-02-27T16:06:08.500502\",\n  \"current_architecture\": {\n    \"core_components\": [\n      \"atlas_web_auto_solver.py (main automation driver)\",\n      \"atlas_feedback_training_export.py (feedback data exporter)\",\n      \"whatsapp_training_collector.py (WhatsApp data collector)\",\n      \"atlas_training_supervisor.py (training orchestration)\",\n      \"atlas_claude_smart_ai2.py (AI processing, likely Claude integration)\",\n      \"validator.py (data validation)\",\n      \"project_info_builder.py (project metadata generation)\",\n      \"pipeline_runner.py (general pipeline execution)\"\n    ],\n    \"user_interface_elements\": [\n      \"atlas_tier3_gui.py (local GUI)\",\n      \"app.js, atlas_annotation.html, styles.css (web UI components for target application)\"\n    ],\n    \"configuration\": \"sample_web_auto_solver.yaml (primary configuration)\",\n    \"data_flow\": \"Inputs from 'data/' directory, outputs to 'outputs/' directory (logs, training feedback, solver results).\",\n    \"ai_integration\": \"Gemini (model: gemini-2.5-flash) and Claude are integrated for AI-driven tasks, likely OCR annotation or content analysis.\"\n  },\n  \"active_automations\": {\n    \"web_auto_solver\": {\n      \"status\": \"Active, but failed\",\n      \"script\": \"atlas_web_auto_solver.py\",\n      \"config\": \"sample_web_auto_solver.yaml\",\n      \"target\": \"https://audit.atlascapture.io/tasks/room/normal\",\n      \"description\": \"Attempts to apply labels and adjust timestamps on a web interface. Configured for structural actions and quality review submission.\"\n    },\n    \"whatsapp_training_data_collection\": {\n      \"status\": \"Active and successful\",\n      \"script\": \"whatsapp_training_collector.py\",\n      \"continuous\": true,\n      \"details\": \"Collected 70 messages (50 images) from 3 groups. Gemini processing for this data is 'ok'. Uses Chrome profile and attaches media to Gemini.\"\n    },\n    \"feedback_training_data_collection\": {\n      \"status\": \"Active, but Gemini processing skipped\",\n      \"script\": \"atlas_feedback_training_export.py\",\n      \"continuous\": false,\n      \"details\": \"Collected 40 feedback entries across 3 episodes. Gemini processing for feedback is 'skipped'. T4 tracking is enabled but no transitions detected, and lessons status is 'skipped'.\"\n    },\n    \"project_info_generation\": {\n      \"status\": \"Likely active/recent\",\n      \"script\": \"project_info_builder.py\",\n      \"details\": \"Indicated by untracked 'project_info/' directory and 'project_info_builder.py' file.\"\n    }\n  },\n  \"known_runtime_risks\": {\n    \"critical_solver_failure\": {\n      \"issue\": \"The 'atlas_web_auto_solver.py' run terminated with a 'TargetClosedError', indicating the browser/page closed unexpectedly.\",\n      \"root_causes_identified\": [\n        \"**Segmentation Failures**: Multiple 'split segment' operations failed due to 'no row-count change' or 'row missing', suggesting UI structure changes or flawed segmentation logic.\",\n        \"**UI Element Instability**: Frequent failures to find or interact with 'timestamp minus button' and 'label input not found', indicating brittle UI element locators or timing issues.\",\n        \"**Core Task Failure**: Zero labels were applied, and the 'Complete' button was not clicked, meaning the primary annotation task failed entirely.\"\n      ]\n    },\n    \"ui_instability\": \"Persistent 'row missing', 'button not found/disappeared' errors strongly suggest a highly dynamic or inconsistent web UI, making automation brittle and unreliable.\",\n    \"configuration_drift_untracked_files\": {\n      \"issue\": \"Several key files (e.g., 'atlas_feedback_training_export.py', 'atlas_training_supervisor.py', 'project_info_builder.py', 'whatsapp_training_collector.py') are untracked, and core files ('atlas_web_auto_solver.py', 'sample_web_auto_solver.yaml') are modified.\",\n      \"risk\": \"Indicates active development or uncommitted changes, leading to potential inconsistencies between deployed code and source control, and difficulty in reproducing issues.\"\n    },\n    \"feedback_loop_inefficiency\": {\n      \"issue\": \"Gemini processing for feedback training is 'skipped', and T4 lessons are 'skipped'.\",\n      \"risk\": \"The AI model is not effectively learning from collected user feedback, hindering continuous improvement.\"\n    },\n    \"max_episodes_configuration\": {\n      \"issue\": \"'run.max_episodes_per_run' is set to 0.\",\n      \"risk\": \"If not intended for unlimited runs, this could lead to infinite loops or resource exhaustion in a stable environment.\"\n    }\n  },\n  \"next_actions\": [\n    \"**Immediate Solver Debugging**: Prioritize debugging the 'TargetClosedError' and preceding failures in 'atlas_web_auto_solver.py'. Focus on strengthening UI element locators, refining segmentation logic, and implementing more robust error handling.\",\n    \"**Address UI Instability**: Investigate the root cause of UI element volatility. Consider using more resilient Playwright selectors, explicit waits, and retry mechanisms.\",\n    \"**Resolve Git Status**: Review and commit or discard all untracked and modified files to ensure code consistency and maintain a clean repository state.\",\n    \"**Enable Feedback Gemini Processing**: Investigate and resolve why Gemini processing for feedback training is 'skipped' to ensure the AI model benefits from user corrections.\",\n    \"**Review T4 Tracking**: Determine why 't4_lessons_status' is 'skipped' despite tracking being enabled, and ensure the T4 feedback loop is fully operational.\",\n    \"**Validate 'max_episodes_per_run'**: Confirm if '0' is the intended behavior for 'run.max_episodes_per_run' or if it should be a positive integer to limit run duration.\"\n  ]\n}"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 5280,
+      "candidatesTokenCount": 1433,
+      "totalTokenCount": 9263,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 5280
+        }
+      ],
+      "thoughtsTokenCount": 2550
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "0qShafPVB-Of28oPwOja2Ao"
+  },
+  "parsed": {
+    "project_name": "OCR_annotation_Atlas",
+    "generated_at": "2026-02-27T16:06:08.500502",
+    "current_architecture": {
+      "core_components": [
+        "atlas_web_auto_solver.py (main automation driver)",
+        "atlas_feedback_training_export.py (feedback data exporter)",
+        "whatsapp_training_collector.py (WhatsApp data collector)",
+        "atlas_training_supervisor.py (training orchestration)",
+        "atlas_claude_smart_ai2.py (AI processing, likely Claude integration)",
+        "validator.py (data validation)",
+        "project_info_builder.py (project metadata generation)",
+        "pipeline_runner.py (general pipeline execution)"
+      ],
+      "user_interface_elements": [
+        "atlas_tier3_gui.py (local GUI)",
+        "app.js, atlas_annotation.html, styles.css (web UI components for target application)"
+      ],
+      "configuration": "sample_web_auto_solver.yaml (primary configuration)",
+      "data_flow": "Inputs from 'data/' directory, outputs to 'outputs/' directory (logs, training feedback, solver results).",
+      "ai_integration": "Gemini (model: gemini-2.5-flash) and Claude are integrated for AI-driven tasks, likely OCR annotation or content analysis."
+    },
+    "active_automations": {
+      "web_auto_solver": {
+        "status": "Active, but failed",
+        "script": "atlas_web_auto_solver.py",
+        "config": "sample_web_auto_solver.yaml",
+        "target": "https://audit.atlascapture.io/tasks/room/normal",
+        "description": "Attempts to apply labels and adjust timestamps on a web interface. Configured for structural actions and quality review submission."
+      },
+      "whatsapp_training_data_collection": {
+        "status": "Active and successful",
+        "script": "whatsapp_training_collector.py",
+        "continuous": true,
+        "details": "Collected 70 messages (50 images) from 3 groups. Gemini processing for this data is 'ok'. Uses Chrome profile and attaches media to Gemini."
+      },
+      "feedback_training_data_collection": {
+        "status": "Active, but Gemini processing skipped",
+        "script": "atlas_feedback_training_export.py",
+        "continuous": false,
+        "details": "Collected 40 feedback entries across 3 episodes. Gemini processing for feedback is 'skipped'. T4 tracking is enabled but no transitions detected, and lessons status is 'skipped'."
+      },
+      "project_info_generation": {
+        "status": "Likely active/recent",
+        "script": "project_info_builder.py",
+        "details": "Indicated by untracked 'project_info/' directory and 'project_info_builder.py' file."
+      }
+    },
+    "known_runtime_risks": {
+      "critical_solver_failure": {
+        "issue": "The 'atlas_web_auto_solver.py' run terminated with a 'TargetClosedError', indicating the browser/page closed unexpectedly.",
+        "root_causes_identified": [
+          "**Segmentation Failures**: Multiple 'split segment' operations failed due to 'no row-count change' or 'row missing', suggesting UI structure changes or flawed segmentation logic.",
+          "**UI Element Instability**: Frequent failures to find or interact with 'timestamp minus button' and 'label input not found', indicating brittle UI element locators or timing issues.",
+          "**Core Task Failure**: Zero labels were applied, and the 'Complete' button was not clicked, meaning the primary annotation task failed entirely."
+        ]
+      },
+      "ui_instability": "Persistent 'row missing', 'button not found/disappeared' errors strongly suggest a highly dynamic or inconsistent web UI, making automation brittle and unreliable.",
+      "configuration_drift_untracked_files": {
+        "issue": "Several key files (e.g., 'atlas_feedback_training_export.py', 'atlas_training_supervisor.py', 'project_info_builder.py', 'whatsapp_training_collector.py') are untracked, and core files ('atlas_web_auto_solver.py', 'sample_web_auto_solver.yaml') are modified.",
+        "risk": "Indicates active development or uncommitted changes, leading to potential inconsistencies between deployed code and source control, and difficulty in reproducing issues."
+      },
+      "feedback_loop_inefficiency": {
+        "issue": "Gemini processing for feedback training is 'skipped', and T4 lessons are 'skipped'.",
+        "risk": "The AI model is not effectively learning from collected user feedback, hindering continuous improvement."
+      },
+      "max_episodes_configuration": {
+        "issue": "'run.max_episodes_per_run' is set to 0.",
+        "risk": "If not intended for unlimited runs, this could lead to infinite loops or resource exhaustion in a stable environment."
+      }
+    },
+    "next_actions": [
+      "**Immediate Solver Debugging**: Prioritize debugging the 'TargetClosedError' and preceding failures in 'atlas_web_auto_solver.py'. Focus on strengthening UI element locators, refining segmentation logic, and implementing more robust error handling.",
+      "**Address UI Instability**: Investigate the root cause of UI element volatility. Consider using more resilient Playwright selectors, explicit waits, and retry mechanisms.",
+      "**Resolve Git Status**: Review and commit or discard all untracked and modified files to ensure code consistency and maintain a clean repository state.",
+      "**Enable Feedback Gemini Processing**: Investigate and resolve why Gemini processing for feedback training is 'skipped' to ensure the AI model benefits from user corrections.",
+      "**Review T4 Tracking**: Determine why 't4_lessons_status' is 'skipped' despite tracking being enabled, and ensure the T4 feedback loop is fully operational.",
+      "**Validate 'max_episodes_per_run'**: Confirm if '0' is the intended behavior for 'run.max_episodes_per_run' or if it should be a positive integer to limit run duration."
+    ]
+  }
+}

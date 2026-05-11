@@ -1,0 +1,72 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+*.log
+
+outputs/
+discord/
+data/harvest_*.json
+.state/
+annotations_*.json
+annotations_*.csv
+tier3_review_*.json
+tier3_review_*.csv
+*_reference_*.json
+*_reference_*.csv
+atlas_pipeline_*.json
+
+.idea/
+
+# Cloud credentials / secrets
+.env
+.env.*
+project-*.json
+*service-account*.json
+secrets/*.json
+
+# Local runtime / temp / archives
+.venv/
+.tmp_server/
+.minimax/
+.archive/
+chat_reviews/
+info/
+tmp/
+data/harvest_*.json
+data/harvest_log.txt
+code_summary.txt
+core_1_pipeline.txt
+project_structure.txt
+atlas_review_viewer.html
+screencapture-*.pdf
+
+# Atlas Scribe Local Sessions
+scribe_sessions/
+test_scribe_load.py
+
+# Editor temp
+.vscode/
+
+# Colab / Package Artifacts
+Atlas_Project_Colab.zip
+Atlas_Project_Colab_manifest.txt
+node_modules/
+package-lock.json
+package.json
+config_backup/
+.aider*
+nul
+
+# Large binary files
+offline_packages/
+live_validation_update.bundle
+repomix-output.xml
+outputs_test/
+reviewdev.pdf
+Atlas_Dev_Plan_Enhanced.pdf
+Code_Review_Report.pdf
+OCR_Atlas_Decision_Matrix.pdf
+OCR_Atlas_Technical_Audit_Report.pdf
+OCR_Atlas_v2_Review_Report_Final.pdf
+move to small.docx

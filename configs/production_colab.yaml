@@ -1,0 +1,271 @@
+# ═══════════════════════════════════════════════════════════════════════
+# production_colab.yaml
+# Colab-ready production config: headless, main-branch notebook sync, strict gates ON
+# ═══════════════════════════════════════════════════════════════════════
+
+browser:
+  headless: true
+  slow_mo_ms: 0
+  storage_state_path: ".state/atlas_auth.json"
+  force_login: false
+  use_chrome_profile: false
+  fallback_to_isolated_context_on_profile_error: true
+  profile_launch_timeout_ms: 30000
+  chrome_channel: "chromium"
+
+run:
+  dry_run: false
+  max_segments: 0
+  max_episodes_per_run: 0
+  reserve_cooldown_sec: 120
+  reuse_cached_labels: false
+  skip_unchanged_labels: false
+  resume_from_artifacts: true
+  # PRODUCTION SAFETY: never skip video steps
+  resume_skip_video_steps_when_cached: false
+  resume_skip_apply_steps_when_done: false
+  auto_continuity_merge_enabled: false
+  segment_chunking_enabled: false
+  segment_chunking_temporal_anchor_enabled: true
+  rag_few_shot_enabled: true
+  rag_few_shot_top_k: 3
+  rag_few_shot_min_score: 0.15
+  correction_chat_enabled: true
+  hybrid_chat_unconditional_review: true
+  object_identity_guard_enabled: true
+  object_identity_guard_min_mentions: 2
+  object_identity_guard_min_ratio: 0.6
+  episode_end_guard_enabled: true
+  max_episode_end_drift_sec: 2.0
+  # PRODUCTION: always require video
+  execute_require_video_context: true
+  use_task_scoped_artifacts: true
+  enable_quality_review_submit: true
+  primary_solve_backend: chat_web
+  chat_only_mode: true
+  gemini_transport_max_retries_ops: 2
+  chat_ops_enabled: false
+  chat_ops_fail_open: true
+  chat_ops_run_without_overlong: false
+  chat_ops_timeout_sec: 300.0
+  chat_only_policy_retry_enabled: false
+  chat_labels_timeout_sec: 420.0
+  chat_chunk_fallback_to_single_request: true
+  adjust_timestamps: true
+  play_full_video_before_labeling: true
+  play_full_video_max_wait_sec: 900
+
+  # PRODUCTION SAFETY GATES (all enabled)
+  pre_submit_live_recheck_enabled: true
+  pre_submit_live_recheck_block_on_timestamp_errors: true
+  pre_submit_live_recheck_block_on_any_policy_error: true    # stricter than default
+  pre_submit_live_recheck_block_on_large_drift: true
+  pre_submit_live_recheck_require_count_match: false
+
+  # Extra Gemini compare gate before Submit
+  pre_submit_gemini_compare_enabled: false
+  pre_submit_gemini_compare_model: "gemini-3.1-pro-preview"
+  pre_submit_gemini_compare_attach_video: true
+  pre_submit_gemini_compare_block_on_reject: true
+  pre_submit_gemini_compare_fail_open: false                 # STRICT: block on error
+  pre_submit_gemini_compare_log_success: true
+  pre_submit_gemini_compare_save_output: true
+  pre_submit_gemini_compare_dump: "pre_submit_gemini_compare.json"
+
+  # Gemini Chat gate: disable in headless production (no browser UI)
+  pre_submit_gemini_chat_compare_enabled: false
+
+  # FULL-VIDEO-FIRST: try full video inline, fall back to chunking if fails
+  segment_chunking_fallback_on_full_fail: true
+
+  output_dir: "outputs"
+  segments_dump: "atlas_segments_dump.json"
+  labels_dump: "atlas_labels_from_gemini.json"
+  prompt_dump: "atlas_prompt.txt"
+  video_dump: "atlas_task_video.mp4"
+
+atlas:
+  login_url: "https://audit.atlascapture.io/login?redirect=%2F"
+  dashboard_url: "https://audit.atlascapture.io/dashboard"
+  room_url: "https://audit.atlascapture.io/tasks"
+  email: "" # Resolved from ATLAS_LOGIN_EMAIL env
+  auth_timeout_sec: 180
+  wait_before_continue_sec: 5
+  timestamp_step_sec: 0.1
+  timestamp_max_clicks_per_segment: 30
+  selectors:
+    email_input: '#email || input#email || input[type="email"]'
+    start_button: 'button:has-text("Start Earning Today") || button[type="submit"]'
+    otp_input: '#code || input#code || input[inputmode="numeric"]'
+    verify_button: 'button:has-text("Verify") || button[type="submit"]'
+    tasks_nav: 'a[href*="/tasks"] || a:has-text("Tasks")'
+    enter_workflow_button: 'button:has-text("Enter Standard Workflow")'
+    continue_room_button: 'button:has-text("Continue to Room")'
+    label_button: 'button:has-text("Label")'
+    label_task_link: 'a[href*="/tasks/room/normal/label/"]'
+    reserve_episodes_button: 'button:has-text("Reserve 5 Episodes") || button:has-text("Reserve")'
+    confirm_reserve_button: 'button:has-text("I Understand") || button:has-text("OK")'
+    video_element: 'video'
+    video_source: 'video source'
+    loop_toggle_button: 'button:has-text("Loop OFF") || button:has-text("Loop ON")'
+    complete_button: 'button:has-text("Complete")'
+    quality_review_modal: 'div[role="dialog"]:has-text("Quality Review") || div[role="dialog"]:has-text("Quality") || div[role="dialog"]:has-text("No Edits Made") || div[role="dialog"]'
+    quality_review_checkbox: 'input[type="checkbox"] || [role="checkbox"]'
+    quality_review_submit_button: 'button:has-text("Submit") || button:has-text("Confirm") || button:has-text("OK") || button:has-text("Yes")'
+    segment_rows: 'div.space-y-1.p-2 > div.rounded-lg.border.p-3'
+    segment_label: 'p[title*="Double-click to edit"]'
+    segment_start: 'span.font-mono.text-xs'
+    segment_end: 'span.font-mono.text-xs.px-1\.5.py-0\.5'
+    segment_time_plus_button: 'button:has(svg.lucide-plus)'
+    segment_time_minus_button: 'button:has(svg.lucide-minus)'
+    edit_button_in_row: 'button[title*="Edit"]'
+    label_input: 'textarea || [contenteditable="true"]'
+    save_button: 'button:has-text("Save")'
+
+otp:
+  provider: "gmail_imap"
+  gmail_email: ""
+  gmail_app_password: ""
+  mailbox: "[Gmail]/All Mail"
+  imap_host: "imap.gmail.com"
+  imap_port: 993
+  code_regex: "\\b(\\d{6})\\b"
+  timeout_sec: 120
+  poll_interval_sec: 4
+  max_messages: 25
+  unseen_only: false
+  lookback_sec: 300
+
+gemini:
+  # ── SINGLE-MODEL MODE ───────────────────────────────────────────────
+  # All stages use the same model to minimize cost and complexity.
+  # Change only this one value to switch models across the entire pipeline.
+  auth_mode: "chat_web"
+  system_instruction_file: "prompts/atlas_vertex_context_pack.txt"
+  api_key: "" # Resolved from GEMINI_API_KEY env
+  # Automatically switch to GEMINI_API_KEY_FALLBACK (Paid) if Free key hits 429 Quota
+  quota_fallback_enabled: true
+  quota_fallback_max_uses_per_run: 20
+  chat_web_url: "https://gemini.google.com/app/b3006ba9f325b55c"
+  hybrid_chat_refine_enabled: true
+  
+  # Split upload settings (increased for speed)
+  split_upload_only_if_larger_mb: 50.0
+  split_upload_target_part_duration_sec: 600.0
+  split_upload_max_chunks: 10
+  split_upload_overlap_sec: 0.5
+  split_upload_force_reencode: false
+  split_upload_reencode_max_width: 1280
+  split_upload_reencode_fps: 10.0
+  split_upload_reencode_on_copy_fail: true
+
+  # Vertex settings
+  #vertex_project: "project-1e9e05a3-c200-4e5d-87f"
+  #vertex_location: "global"
+  #vertex_credentials_path: "" # Resolved from GOOGLE_APPLICATION_CREDENTIALS env
+  #vertex_cached_content_name: ""
+  #vertex_cached_content_strip_system_instruction: true
+  #use_vertex_cached_context_only: false
+
+  # Hybrid capped routing: cheap bulk path, paid/high-quality final compare path.
+  model: "gemini-3.1-pro-preview"
+  compare_model: "gemini-3.1-pro-preview"
+  chat_timed_model: "gemini-3.1-pro-preview"
+  chat_ops_model: "gemini-3.1-pro-preview"
+  chat_labels_model: "gemini-3.1-pro-preview"
+  chat_ops_response_schema_enabled: true
+  chat_labels_response_schema_enabled: true
+  stage_models:
+    labeling: "gemini-3.1-pro-preview"
+    repair: "gemini-3.1-pro-preview"
+    policy_retry: "gemini-3.1-pro-preview"
+    compare_api: "gemini-3.1-pro-preview"
+    compare_chat: "gemini-3.1-pro-preview"
+  #vertex_chat_model: ""
+
+  # Auth modes per stage
+  compare_auth_mode: "api_key"
+  timed_labels_auth_mode: "chat_web"
+  #vertex_chat_auth_mode: " "
+  api_update_auth_mode: "api_key"
+
+  # Fallback only when model unavailable (not for quality failures)
+  compare_fallback_model: "gemini-3.1-pro-preview"
+  chat_timed_fallback_model: "gemini-3.1-pro-preview"
+
+  # Quality settings
+  temperature: 0.0
+  compare_temperature: 0.0
+  timed_labels_temperature: 0.1
+  compare_include_thought_process: true
+  compare_response_schema_enabled: true
+  timed_labels_response_schema_enabled: true
+  #vertex_chat_response_schema_enabled: true
+  api_update_response_schema_enabled: true
+
+  # Tier2 repair mode (recommended)
+  timed_labels_repair_from_tier2: true
+  timed_labels_require_gapless_timeline: true
+  timed_labels_strict_action_policy: true
+  timed_labels_tier2_max_chars: 16000
+
+  # PRODUCTION: never fail open
+  compare_fail_on_none: true
+
+  # Repair loop settings (used by atlas_repair_loop.py)
+  repair_max_attempts: 3
+  repair_model: "gemini-3.1-pro-preview"
+  repair_auth_mode: "chat_web"
+  repair_temperature: 0.0
+  repair_timeout_sec: 120
+
+  # Context
+  #context_file: "prompts/atlas_vertex_context_pack.txt"
+  context_text: ""
+
+  # Retry settings
+  max_retries: 3
+  retry_base_delay_sec: 2.0
+  connect_timeout_sec: 30
+  request_timeout_sec: 420
+
+  # Video settings
+  attach_video: true
+  require_video: true
+  allow_text_only_fallback_on_network_error: false
+  max_inline_video_mb: 20.0
+  video_download_timeout_sec: 180
+  min_video_bytes: 500000
+  optimize_video_target_fps: 8.0
+  optimize_video_min_fps: 4.0
+  optimize_video_target_mb: 14.0
+  optimize_video_only_if_larger_mb: 15.0
+
+  # GCS video transport (Vertex AI) - full video without inline limits
+ # gcs_video_bucket: ""
+
+  # PRODUCTION: Single model, no need to retry with a stronger model
+  retry_with_stronger_model_on_policy_fail: false
+  policy_retry_model: "gemini-3.1-pro-preview"
+  policy_retry_only_if_flash: false
+  policy_retry_accept_equal_error_count: false
+
+economics:
+  episode_expected_revenue_usd: 0.5
+  target_cost_ratio: 0.15
+  hard_cost_ratio: 0.2
+
+  extra_instructions: |
+    ### MANDATORY GOLDEN RULES ###
+    1. HOLD RULE: Label "hold [object]" in every segment where the ego is holding an object, UNLESS that object is already mentioned in another action in the same segment.
+       - Correct: "hold cup, pick up cloth" (if already holding cup)
+       - Correct: "wipe cup with cloth" (no need to add 'hold cup')
+       - Incorrect: "hold cup, wipe cup with cloth"
+    2. NO BODY PARTS: Never mention hands, fingers, arms, or any body parts. Focus entirely on the object manipulation.
+    3. VERB-FIRST: Every action must start with an allowed verb (pick up, place, move, adjust, hold, etc.).
+    4. MAX 2 ACTIONS: Limit each label to 2 atomic actions maximum.
+    5. NO NARRATIVE: Do not use words like "starts", "ends", "continues", "then", or "another".
+    6. NO NUMERALS: Never use numerals — write "two" not "2".
+    7. NO INTENT: Never use intent language (prepare to / try to / about to).
+    8. NO OVER-SEGMENTATION: Use coarse single-goal labels for repetitive actions. Split only when the core goal changes.
+    9. HOLD FIRST: If a label contains both a "hold" action and another action, ALWAYS list "hold" first (e.g., "hold x, press y").

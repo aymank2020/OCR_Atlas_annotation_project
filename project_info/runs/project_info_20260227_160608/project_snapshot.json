@@ -1,0 +1,265 @@
+{
+  "generated_at": "2026-02-27T16:06:08.500502",
+  "root": "E:\\OCR_annotation_Atlas",
+  "config_path": "E:\\OCR_annotation_Atlas\\sample_web_auto_solver.yaml",
+  "repo_tree": [
+    {
+      "name": ".idea",
+      "type": "dir",
+      "size_bytes": 0,
+      "mtime": "2026-02-25T19:33:19.469668",
+      "children_count": 6
+    },
+    {
+      "name": ".state",
+      "type": "dir",
+      "size_bytes": 0,
+      "mtime": "2026-02-27T14:33:39.116048",
+      "children_count": 4
+    },
+    {
+      "name": "data",
+      "type": "dir",
+      "size_bytes": 0,
+      "mtime": "2026-02-27T04:01:28.157935",
+      "children_count": 3
+    },
+    {
+      "name": "outputs",
+      "type": "dir",
+      "size_bytes": 0,
+      "mtime": "2026-02-27T15:44:54.529120",
+      "children_count": 539
+    },
+    {
+      "name": "project_info",
+      "type": "dir",
+      "size_bytes": 0,
+      "mtime": "2026-02-27T15:59:35.267653",
+      "children_count": 3
+    },
+    {
+      "name": "tests",
+      "type": "dir",
+      "size_bytes": 0,
+      "mtime": "2026-02-26T00:19:08.168987",
+      "children_count": 5
+    },
+    {
+      "name": ".gitignore",
+      "type": "file",
+      "size_bytes": 206,
+      "mtime": "2026-02-24T00:55:16.332736"
+    },
+    {
+      "name": "app.js",
+      "type": "file",
+      "size_bytes": 41163,
+      "mtime": "2026-02-23T19:23:12.363562"
+    },
+    {
+      "name": "atlas_annotation.html",
+      "type": "file",
+      "size_bytes": 51852,
+      "mtime": "2026-02-24T18:17:29.891725"
+    },
+    {
+      "name": "atlas_claude_smart_ai2.py",
+      "type": "file",
+      "size_bytes": 31279,
+      "mtime": "2026-02-23T19:15:25.681712"
+    },
+    {
+      "name": "atlas_feedback_training_export.py",
+      "type": "file",
+      "size_bytes": 40753,
+      "mtime": "2026-02-27T15:59:16.595192"
+    },
+    {
+      "name": "atlas_tier3_gui.py",
+      "type": "file",
+      "size_bytes": 21045,
+      "mtime": "2026-02-23T22:44:31.297853"
+    },
+    {
+      "name": "atlas_training_supervisor.py",
+      "type": "file",
+      "size_bytes": 6545,
+      "mtime": "2026-02-27T15:52:30.508023"
+    },
+    {
+      "name": "atlas_web_auto_solver.py",
+      "type": "file",
+      "size_bytes": 210672,
+      "mtime": "2026-02-27T11:49:24.439728"
+    },
+    {
+      "name": "auto_solve.docx",
+      "type": "file",
+      "size_bytes": 2169249,
+      "mtime": "2026-02-24T00:46:13.393838"
+    },
+    {
+      "name": "launch_tier3_gui.bat",
+      "type": "file",
+      "size_bytes": 50,
+      "mtime": "2026-02-23T19:52:28.485892"
+    },
+    {
+      "name": "pipeline_runner.py",
+      "type": "file",
+      "size_bytes": 37205,
+      "mtime": "2026-02-23T22:47:01.858727"
+    },
+    {
+      "name": "project_info_builder.py",
+      "type": "file",
+      "size_bytes": 12429,
+      "mtime": "2026-02-27T15:57:16.889945"
+    },
+    {
+      "name": "prompts.py",
+      "type": "file",
+      "size_bytes": 11448,
+      "mtime": "2026-02-23T20:34:16.199241"
+    },
+    {
+      "name": "README.md",
+      "type": "file",
+      "size_bytes": 8770,
+      "mtime": "2026-02-27T15:58:37.642963"
+    },
+    {
+      "name": "repair_payload_builder.py",
+      "type": "file",
+      "size_bytes": 1765,
+      "mtime": "2026-02-23T20:35:51.519292"
+    },
+    {
+      "name": "sample_config.yaml",
+      "type": "file",
+      "size_bytes": 797,
+      "mtime": "2026-02-23T22:44:59.378606"
+    },
+    {
+      "name": "sample_config_gemini_claude_codex.yaml",
+      "type": "file",
+      "size_bytes": 1304,
+      "mtime": "2026-02-23T23:03:01.383000"
+    },
+    {
+      "name": "sample_config_online_hybrid.yaml",
+      "type": "file",
+      "size_bytes": 907,
+      "mtime": "2026-02-23T22:44:54.362676"
+    },
+    {
+      "name": "sample_web_auto_solver.yaml",
+      "type": "file",
+      "size_bytes": 13523,
+      "mtime": "2026-02-27T15:57:39.135678"
+    },
+    {
+      "name": "sample_web_auto_solver_no_complete.yaml",
+      "type": "file",
+      "size_bytes": 10080,
+      "mtime": "2026-02-27T11:50:12.398543"
+    },
+    {
+      "name": "setup_git.sh",
+      "type": "file",
+      "size_bytes": 1161,
+      "mtime": "2026-02-22T14:41:46"
+    },
+    {
+      "name": "styles.css",
+      "type": "file",
+      "size_bytes": 17558,
+      "mtime": "2026-02-22T14:41:46"
+    },
+    {
+      "name": "validator.py",
+      "type": "file",
+      "size_bytes": 19717,
+      "mtime": "2026-02-23T20:35:37.805901"
+    },
+    {
+      "name": "whatsapp_training_collector.py",
+      "type": "file",
+      "size_bytes": 41318,
+      "mtime": "2026-02-27T15:52:58.751185"
+    }
+  ],
+  "git_status": {
+    "ok": true,
+    "lines": [
+      " M README.md",
+      " M atlas_web_auto_solver.py",
+      " M sample_web_auto_solver.yaml",
+      "?? atlas_feedback_training_export.py",
+      "?? atlas_training_supervisor.py",
+      "?? data/gemini_policy_v1.txt",
+      "?? project_info/",
+      "?? project_info_builder.py",
+      "?? sample_web_auto_solver_no_complete.yaml",
+      "?? tests/test_atlas_web_auto_solver.py",
+      "?? whatsapp_training_collector.py"
+    ],
+    "count": 11
+  },
+  "feedback_latest": "E:\\OCR_annotation_Atlas\\outputs\\training_feedback\\latest.json",
+  "whatsapp_latest": "E:\\OCR_annotation_Atlas\\outputs\\training_feedback\\whatsapp\\latest.json",
+  "solver_latest_log": "E:\\OCR_annotation_Atlas\\outputs\\solver_live_20260227_153421.log",
+  "feedback_latest_data": {
+    "training_dir": "E:\\OCR_annotation_Atlas\\outputs\\training_feedback\\runs\\training_feedback_20260227_155958",
+    "dataset_json": "E:\\OCR_annotation_Atlas\\outputs\\training_feedback\\runs\\training_feedback_20260227_155958\\training_dataset.json",
+    "prompt": "E:\\OCR_annotation_Atlas\\outputs\\training_feedback\\runs\\training_feedback_20260227_155958\\gemini_progress_prompt.txt",
+    "episodes_collected": 3,
+    "feedback_entries_found": 40,
+    "tabs_captured": [
+      "Feedback",
+      "My Disputes",
+      "My Reviews",
+      "Quality Audits"
+    ],
+    "gemini_status": "skipped",
+    "t4_tracking_enabled": true,
+    "t4_transitions_detected": 0,
+    "t4_lessons_status": "skipped",
+    "t4_tracker_total_episodes": 3,
+    "t4_pending_episodes": 0,
+    "t4_resolved_episodes": 3,
+    "generated_at": "2026-02-27T16:01:21.095610",
+    "cycle": 1,
+    "continuous": false,
+    "interval_sec": 600
+  },
+  "whatsapp_latest_data": {
+    "run_dir": "E:\\OCR_annotation_Atlas\\outputs\\training_feedback\\whatsapp\\runs\\whatsapp_training_20260227_155124",
+    "dataset_json": "E:\\OCR_annotation_Atlas\\outputs\\training_feedback\\whatsapp\\runs\\whatsapp_training_20260227_155124\\whatsapp_dataset.json",
+    "prompt_path": "E:\\OCR_annotation_Atlas\\outputs\\training_feedback\\whatsapp\\runs\\whatsapp_training_20260227_155124\\gemini_whatsapp_prompt.txt",
+    "groups_count": 3,
+    "messages_total": 70,
+    "text_messages_total": 0,
+    "media_files_total": 50,
+    "audio_files_total": 0,
+    "image_files_total": 50,
+    "attachments_for_gemini": 18,
+    "gemini_status": "ok",
+    "generated_at": "2026-02-27T15:53:36.973587",
+    "cycle": 2
+  },
+  "solver_latest_tail": "[run] operations applied: 0 (structural=0)\n[run] operation failures:\n  - op#1 split segment 2: no row-count change (expected 27, got 26)\n  - op#2 split segment 5: no row-count change (expected 27, got 26)\n  - op#3 split segment 7: no row-count change (expected 27, got 26)\n  - op#4 split segment 8: no row-count change (expected 27, got 26)\n  - op#5 split segment 9: no row-count change (expected 27, got 26)\n  - op#6 split segment 12: no row-count change (expected 27, got 26)\n  - op#7 split segment 19: no row-count change (expected 27, got 26)\n  - op#8 split segment 21: no row-count change (expected 27, got 26)\n  - op#9 split segment 22: no row-count change (expected 27, got 26)\n  - op#10 split segment 25: no row-count change (expected 27, got 26)\n  - op#11 split segment 26: no row-count change (expected 27, got 26)\n  - op#12 split segment 27: row missing (count=26)\n[out] segments: outputs\\atlas_segments_dump.json\n[out] prompt:   outputs\\atlas_prompt.txt\n[out] labels:   outputs\\atlas_labels_from_gemini.json\n[out] segments task: outputs\\segments_6903dfa9a59c9682161d851a.json\n[out] prompt task:   outputs\\prompt_6903dfa9a59c9682161d851a.txt\n[out] labels task:   outputs\\labels_6903dfa9a59c9682161d851a.json\n[out] text current: outputs\\text_6903dfa9a59c9682161d851a_current.txt\n[out] text update: outputs\\text_6903dfa9a59c9682161d851a_update.txt\n[out] validation: outputs\\validation_6903dfa9a59c9682161d851a.json\n[policy] warnings: 18\n  - segment 4: large timestamp drift from source\n  - segment 5: large timestamp drift from source\n  - segment 11: large timestamp drift from source\n  - segment 12: large timestamp drift from source\n  - segment 13: large timestamp drift from source\n  - segment 14: large timestamp drift from source\n  - segment 15: large timestamp drift from source\n  - segment 16: large timestamp drift from source\n  - segment 17: large timestamp drift from source\n  - segment 18: large timestamp drift from source\n[gemini] usable labels: 26\n[run] pre-skip unchanged labels: 1\n[atlas] using segment rows selector: div.space-y-1.p-2 > div.rounded-lg.border.p-3 (count=26)\n[run] timestamp adjustments: 3\n[run] timestamp adjustment failures:\n  - segment 2: timestamp minus button not found\n  - segment 5: timestamp minus button not found\n  - segment 6: timestamp minus button disappeared during adjustment\n  - segment 7: timestamp minus button disappeared during adjustment\n  - segment 8: timestamp minus button not found\n  - segment 9: timestamp minus button not found\n  - segment 10: timestamp minus button not found\n  - segment 11: timestamp minus button disappeared during adjustment\n  - segment 12: timestamp minus button not found\n  - segment 13: timestamp minus button disappeared during adjustment\n  - segment 14: timestamp minus button disappeared during adjustment\n  - segment 15: timestamp minus button not found\n  - segment 16: timestamp minus button not found\n  - segment 17: timestamp minus button not found\n  - segment 18: timestamp minus button disappeared during adjustment\n  - segment 19: timestamp minus button not found\n  - segment 20: timestamp minus button disappeared during adjustment\n  - segment 22: timestamp minus button not found\n  - segment 23: timestamp minus button disappeared during adjustment\n  - segment 24: timestamp minus button not found\n  - segment 25: timestamp minus button not found\n  - segment 26: timestamp minus button disappeared during adjustment\n[atlas] using segment rows selector: div.space-y-1.p-2 > div.rounded-lg.border.p-3 (count=26)\n[run] applied labels: 0\n[run] skipped unchanged labels: 1\n[run] failures:\n  - segment 1: label input not found\n  - segment 2: row missing (count=0)\n  - segment 3: row missing (count=0)\n  - segment 4: row missing (count=0)\n  - segment 5: row missing (count=0)\n  - segment 6: row missing (count=0)\n  - segment 7: row missing (count=0)\n  - segment 8: row missing (count=0)\n  - segment 9: row missing (count=0)\n  - segment 10: row missing (count=0)\n  - segment 11: row missing (count=0)\n  - segment 12: row missing (count=0)\n  - segment 13: row missing (count=0)\n  - segment 14: row missing (count=0)\n  - segment 15: row missing (count=0)\n  - segment 16: row missing (count=0)\n  - segment 17: row missing (count=0)\n  - segment 18: row missing (count=0)\n  - segment 19: row missing (count=0)\n  - segment 20: row missing (count=0)\n  - segment 21: row missing (count=0)\n  - segment 22: row missing (count=0)\n  - segment 23: row missing (count=0)\n  - segment 24: row missing (count=0)\n  - segment 25: row missing (count=0)\n[run] Complete button not clicked (not found or not visible).\n[run] returning to room page for next episode.\n[run] waiting 2.8s before next episode.\n[atlas] goto room url: https://audit.atlascapture.io/tasks/room/normal\n[atlas] already on room page; skipping duplicate room navigation.\nTraceback (most recent call last):\n  File \"E:\\OCR_annotation_Atlas\\atlas_web_auto_solver.py\", line 5112, in <module>\n    main()\n  File \"E:\\OCR_annotation_Atlas\\atlas_web_auto_solver.py\", line 5108, in main\n    run(cfg, execute=bool(args.execute))\n  File \"E:\\OCR_annotation_Atlas\\atlas_web_auto_solver.py\", line 4597, in run\n    opened = goto_task_room(page, cfg, skip_task_ids=skip_task_ids_for_open)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\OCR_annotation_Atlas\\atlas_web_auto_solver.py\", line 2603, in goto_task_room\n    page.wait_for_timeout(1000)\n  File \"C:\\Users\\Ayman\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\playwright\\sync_api\\_generated.py\", line 11536, in wait_for_timeout\n    self._sync(self._impl_obj.wait_for_timeout(timeout=timeout))\n  File \"C:\\Users\\Ayman\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\playwright\\_impl\\_sync_base.py\", line 115, in _sync\n    return task.result()\n           ^^^^^^^^^^^^^\n  File \"C:\\Users\\Ayman\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\playwright\\_impl\\_page.py\", line 1101, in wait_for_timeout\n    await self._main_frame.wait_for_timeout(timeout)\n  File \"C:\\Users\\Ayman\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\playwright\\_impl\\_frame.py\", line 862, in wait_for_timeout\n    await self._channel.send(\"waitForTimeout\", None, {\"waitTimeout\": timeout})\n  File \"C:\\Users\\Ayman\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\playwright\\_impl\\_connection.py\", line 69, in send\n    return await self._connection.wrap_api_call(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Ayman\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\playwright\\_impl\\_connection.py\", line 559, in wrap_api_call\n    raise rewrite_error(error, f\"{parsed_st['apiName']}: {error}\") from None\nplaywright._impl._errors.TargetClosedError: Page.wait_for_timeout: Target page, context or browser has been closed",
+  "key_config": {
+    "run.max_episodes_per_run": 0,
+    "run.keep_alive_when_idle": true,
+    "run.enable_quality_review_submit": true,
+    "run.enable_structural_actions": true,
+    "training_feedback.continuous": false,
+    "training_feedback.track_t4_disputes": true,
+    "whatsapp_training.continuous": true,
+    "whatsapp_training.use_chrome_profile": true,
+    "whatsapp_training.attach_media_to_gemini": true,
+    "gemini.model": "gemini-2.5-flash"
+  }
+}

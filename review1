@@ -1,0 +1,769 @@
+Starting CodeRabbit review in plain text mode...
+
+Connecting to review service
+Setting up
+Analyzing
+Reviewing
+
+============================================================================
+File: safe_update_preserve_local.sh
+Line: 48 to 58
+Type: potential_issue
+
+Comment:
+Stash is not restored if git pull fails.
+
+With set -e enabled, if git pull --ff-only fails (e.g., non-fast-forward merge required), the script exits immediately and the autostash is never restored. User's local changes will be stranded in the stash.
+
+Consider using a trap to ensure stash restoration on exit:
+
+
+🔧 Proposed fix using trap for cleanup
+
+ AUTO_STASH="${SAFE_UPDATE_AUTOSTASH:-1}"
++
++cleanup_stash() {
++  if [ "$DID_STASH" -eq 1 ]; then
++    if git stash list | grep -q "$STASH_NAME"; then
++      echo "[safe-update] restoring autostash due to script exit..."
++      git stash pop --index || echo "[safe-update] warning: stash restore had conflicts. See: git stash list"
++    fi
++  fi
++}
++trap cleanup_stash EXIT
+ 
+ preserve_files=(
+
+
+Then remove the duplicate restore logic at lines 60-68 since the trap handles it.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @safe_update_preserve_local.sh around lines 48 - 58, Wrap the autostash+pull sequence with a cleanup trap so the stash is always popped if created: after you set DID_STASH=1 (in the AUTO_STASH block where you call git stash push), register a trap on EXIT that checks DID_STASH and runs the stash restore logic (using STASH_NAME or git stash pop) so the stash is restored even if git pull --ff-only fails; keep existing stash-creation logic (AUTO_STASH, STASH_NAME, DID_STASH) but remove the duplicate restore block later (lines that manually pop the stash) to avoid double-restores.
+
+
+
+============================================================================
+File: CLAUDE_OPUS_4_6_PROJECT_DEEP_BRIEF_AR.md
+Line: 146 to 151
+Type: refactor_suggestion
+
+Comment:
+Define the "structured error-guided repair" mechanism.
+
+Line 149 mentions "structured error-guided repair" as a key component of Phase 2, but the document doesn't specify:
+- What structure the errors will have
+- How validator errors map to repair prompts
+- What repair strategies are available
+- How to prevent repair loops from degrading quality further
+
+This is a critical component that needs detailed specification.
+
+
+
+
+Would you like me to draft a detailed repair mechanism specification based on the validator errors and failure modes described in this document?
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @CLAUDE_OPUS_4_6_PROJECT_DEEP_BRIEF_AR.md around lines 146 - 151, Clarify and specify the "structured error-guided repair" used in Phase 2 by (1) defining a concrete error schema (fields like error_code, severity, location, expected_vs_actual, validator_id) that validators emit, (2) describing a deterministic mapping from validator errors to repair actions (e.g., map error_code X -> repair_strategy "refine constraint" with template variables), (3) providing canonical repair prompt templates (one per strategy) that inject the structured fields into the prompt for the candidate generator, (4) enumerating available repair strategies (e.g., constraint relaxation, focused regeneration, targeted patch, example-driven correction) and selection rules based on severity and validator_id, and (5) adding loop controls to avoid degradation (max_attempts, acceptance thresholds, rollback to previous best, confidence gating) plus metrics to log attempts and outcomes and an escalation path to "queue for manual resolution" when thresholds are exceeded; reference the Phase 2 "structured error-guided repair" phrase and validator outputs when adding these specs.
+
+
+
+============================================================================
+File: CLAUDE_OPUS_4_6_PROJECT_DEEP_BRIEF_AR.md
+Line: 161 to 167
+Type: refactor_suggestion
+
+Comment:
+Specify target values for all KPIs.
+
+The KPIs are listed but lack target values or acceptable ranges. For effective monitoring and validation, each KPI needs:
+- Baseline: Current measured value
+- Target: Acceptable threshold
+- Measurement method: How to collect and calculate
+
+For example:
+- "Hallucination rate" → Target: 0% (from acceptance criteria)
+- "Cost per safe episode" → Target: ? (not specified)
+- "Episodes requiring manual intervention" → Target: <5%? (not specified)
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @CLAUDE_OPUS_4_6_PROJECT_DEEP_BRIEF_AR.md around lines 161 - 167, Update section "11) مؤشرات الأداء المطلوبة (KPIs)" to include for each listed KPI (Submit-safe pass rate, Hallucination rate, Timestamp alignment error, Repair success rate, Cost per safe episode, Episodes requiring manual intervention) a Baseline (current measured value or "TBD"), a concrete Target (numeric threshold or percentage, e.g., Hallucination rate: 0%, Episodes requiring manual intervention: <5%, Timestamp alignment error: <= X ms, Cost per safe episode: $Y), and a short Measurement method describing how it is collected/calculated (logs/automated tests/sampling, time window, numerator/denominator). Ensure each KPI line contains all three elements (Baseline | Target | Measurement method) so they are directly actionable and measurable.
+
+
+
+============================================================================
+File: CLAUDE_OPUS_4_6_PROJECT_DEEP_BRIEF_AR.md
+Line: 128 to 130
+Type: refactor_suggestion
+
+Comment:
+Specify explicit stop conditions in the requirements section.
+
+Lines 128-130 request "clear stop conditions" but don't define them. The draft proposal (line 150) mentions "2-3 max attempts," but this should be specified as a hard requirement here.
+
+
+
+
+🛡️ Proposed addition to clarify stop conditions
+
+ 3. حدود توقف واضحة:
+    - عدد محاولات repair
+    - متى نوقف تمامًا ونسلم للحكم اليدوي
++   - الحد الأقصى: 3 محاولات repair
++   - التوقف الفوري عند: hallucination في المحاولة الثانية
++   - التحويل للحكم اليدوي: عند فشل كل المحاولات في تجاوز threshold
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @CLAUDE_OPUS_4_6_PROJECT_DEEP_BRIEF_AR.md around lines 128 - 130, في قسم "حدود توقف واضحة" أضف شرط توقّف صريح ومُلزم يوافق مسودة الاقتراح: حد أقصى لعدد محاولات الـ repair يساوي 3 محاولات، وطريقة تصعيد واضحة — عند نفاد المحاولات الثلاث أو حدوث خطأ غير قابل للاسترداد يجب التوقف فورًا وتسليم القضية إلى الحكم اليدوي؛ حدّد أيضاً حالة "خطأ غير قابل للاسترداد" ومعاييرها (مثلاً فشل تناسق البيانات أو فقدان المدخلات) واذكر بوضوح أن هذا المعيار ملزم (راجع الإشارة إلى "2-3 max attempts" في المسودّة لتوافق المصطلحات).
+
+
+
+============================================================================
+File: .claude/commands/speckit.plan.md
+Line: 70
+Type: potential_issue
+
+Comment:
+Phase 2 referenced but not defined.
+
+Line 70 states "Command ends after Phase 2 planning," but only Phase 0 (Outline & Research) and Phase 1 (Design & Contracts) are defined in the document. Either Phase 2 should be documented or the reference should be corrected.
+
+
+
+📝 Suggested clarification
+
+Either add a Phase 2 section or update the text:
+
+-4. Stop and report: Command ends after Phase 2 planning. Report branch, IMPL_PLAN path, and generated artifacts.
++4. Stop and report: Command ends after Phase 1 planning. Report branch, IMPL_PLAN path, and generated artifacts.
+
+
+Or add Phase 2 definition below Phase 1.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @.claude/commands/speckit.plan.md at line 70, The text references "Phase 2" in the line "Stop and report" but no Phase 2 is defined; either add a new "Phase 2" section (e.g., define scope, deliverables, and relation to IMPL_PLAN and generated artifacts) or change the wording in the "Stop and report" line to correctly reference "Phase 1 (Design & Contracts)"; update the document so the phases are consistent (search for "Phase 0", "Phase 1", "Phase 2" and the "Stop and report" line to make the corresponding addition or correction).
+
+
+
+============================================================================
+File: atlas_dynamic_rag.py
+Line: 93 to 106
+Type: potential_issue
+
+Comment:
+Critical bug: scored.sort() called when scored may be undefined.
+
+If lessons is empty or falsy, the code skips lines 95-101 where scored is defined, but line 103 still attempts to call scored.sort(), causing a NameError.
+
+
+
+🐛 Proposed fix
+
+         # 2. Retrieve Policy Lessons (The "Audit Brain")
+         lessons = self._load_all(self.lessons_path)
++        scored = []
+         if lessons:
+-            scored = []
+             for l in lessons:
+                 if l.get("category") in self.universal_categories:
+                     scored.append((1000, l))
+                 else:
+                     text = f"{l.get('question', '')} {l.get('answer', '')}"
+                     scored.append((_score_against_video(text, keywords), l))
+-            
+-        scored.sort(key=lambda x: x[0], reverse=True)
++
++        if scored:
++            scored.sort(key=lambda x: x[0], reverse=True)
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_dynamic_rag.py around lines 93 - 106, The variable scored may be undefined when lessons is falsy, causing a NameError on scored.sort(); to fix, initialize scored = [] before using lessons (or move the scored.sort()/top_items/top computation inside the same block that defines scored) so scored is always defined; update the block around lessons = self._load_all(self.lessons_path) to ensure scored, scored.sort(), top_items = scored[:int(max_lessons)], and top = [...] always operate on an initialized list and still respect universal_categories and _score_against_video when lessons exist.
+
+
+
+============================================================================
+File: atlas_repair_loop.py
+Line: 628 to 641
+Type: potential_issue
+
+Comment:
+Log failure when manual queue append fails.
+
+If append_to_manual_queue raises an exception, the failure is silently ignored. This could cause episodes to be "lost" - neither repaired nor queued for manual review. At minimum, log a warning so operators are aware.
+
+
+
+
+🛡️ Suggested fix
+
+     # Queue for manual review
+     try:
+         from submit_gate import append_to_manual_queue  # type: ignore
+         append_to_manual_queue(
+             outputs_dir,
+             gate_result,
+             extra_meta={
+                 "repair_attempted": True,
+                 "repair_attempts": len(result.attempts),
+                 "repair_failure_reason": result.failure_reason,
+             },
+         )
+     except Exception:
+-        pass
++        print(f"[repair-loop] WARNING: failed to queue episode={episode_id} for manual review")
+
+     return None
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_repair_loop.py around lines 628 - 641, The except block that swallows errors from append_to_manual_queue should log the failure and context instead of silently passing; modify the except Exception: handler (surrounding the call to append_to_manual_queue) to call the module logger (or the logging module) with a warning/error that includes the exception info (use logger.exception or logging.exception) and relevant context like outputs_dir, gate_result id/summary, result.attempts length and result.failure_reason so operators can detect lost episodes.
+
+
+
+============================================================================
+File: .claude/commands/speckit.specify.md
+Line: 75 to 76
+Type: potential_issue
+
+Comment:
+Bash example incorrectly references PowerShell script.
+
+Both examples reference .specify/scripts/powershell/create-new-feature.ps1, but the Bash example cannot execute a .ps1 file directly. Either: (1) provide a separate .specify/scripts/bash/create-new-feature.sh script and reference it, or (2) show the correct invocation using pwsh -Command to call the PowerShell script from Bash. The current Bash example will fail.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @.claude/commands/speckit.specify.md around lines 75 - 76, The Bash example incorrectly references the PowerShell script .specify/scripts/powershell/create-new-feature.ps1; update the Bash example to either reference a bash script (e.g., .specify/scripts/bash/create-new-feature.sh "$ARGUMENTS" --json --short-name "user-auth" "Add user authentication") if such a script exists, or show the correct cross-call using PowerShell from Bash (e.g., pwsh -Command to invoke .specify/scripts/powershell/create-new-feature.ps1 with the same arguments). Ensure the two example lines consistently reflect the correct script and invocation method so .specify/scripts/powershell/create-new-feature.ps1 is not directly called as a Bash executable.
+
+
+
+============================================================================
+File: atlas_auto_sync_and_rebuild.py
+Line: 188 to 189
+Type: potential_issue
+
+Comment:
+Empty evaluations JSON structure is inconsistent with consumers.
+
+Writing [] (empty array) when the file doesn't exist conflicts with the expected structure. All consumers (atlas_triplet_batch.py, atlas_dashboard_gen.py, etc.) call .get("evaluations") on the loaded JSON, expecting it to be a dictionary. This will cause AttributeError failures when the empty array is encountered.
+
+
+Suggested fix
+
+     elif not eval_dst.exists():
+-        eval_dst.write_text("[]\n", encoding="utf-8")
++        eval_dst.write_text('{"evaluations": {}}\n', encoding="utf-8")
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_auto_sync_and_rebuild.py around lines 188 - 189, The new-file default is writing an array ("[]") which breaks consumers that call .get("evaluations") expecting a mapping; change the branch that handles eval_dst not existing (the elif not eval_dst.exists() block) to write a JSON object with an "evaluations" key mapping to an empty dict (e.g. '{"evaluations": {}}\\n') or use json.dump/json.dumps to produce that structure, ensuring encoding="utf-8" as before so consumers like atlas_triplet_batch.py and atlas_dashboard_gen.py receive a dict for .get("evaluations").
+
+
+
+============================================================================
+File: atlas_discord_bot.py
+Line: 29 to 32
+Type: potential_issue
+
+Comment:
+Use exception chaining when re-raising.
+
+When catching ImportError and raising RuntimeError, use from None (or from err) to preserve the traceback context or explicitly suppress it.
+
+
+
+🐛 Proposed fix
+
+ try:
+     import discord
+-except ImportError:
+-    raise RuntimeError("discord.py package not installed. Run: pip install discord.py")
++except ImportError as err:
++    raise RuntimeError("discord.py package not installed. Run: pip install discord.py") from err
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_discord_bot.py around lines 29 - 32, The ImportError handler in the top-level import block currently raises a new RuntimeError without chaining; modify the except block that catches ImportError (the try: import discord / except ImportError:) to re-raise the RuntimeError using exception chaining (e.g., "raise RuntimeError('discord.py package not installed. Run: pip install discord.py') from err" where you capture the exception as err, or use "from None" to suppress the original traceback) so the traceback context is either preserved or explicitly suppressed.
+
+
+
+============================================================================
+File: atlas_review_viewer_gen.py
+Line: 108 to 113
+Type: potential_issue
+
+Comment:
+CSS syntax error - missing closing brace.
+
+The .episode-select rule at lines 108-111 is missing its closing brace before .meta starts at line 113. This will cause CSS parsing errors.
+
+
+
+🐛 Proposed fix
+
+     .episode-select {{
+       width: 100%;
+       min-height: 44px;
+       font-family: Consolas, "Courier New", monospace;
+       font-size: 12px;
++    }}
+     .meta {{
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_review_viewer_gen.py around lines 108 - 113, The CSS rule for .episode-select is missing a closing brace before the .meta rule, causing a syntax error; update the CSS block in atlas_review_viewer_gen.py (where the .episode-select and .meta styles are defined) by adding the missing '}' to close the .episode-select rule so .meta starts in its own rule, ensuring proper nesting and valid CSS.
+
+
+
+============================================================================
+File: sample_web_auto_solver_production.yaml.save
+Line: 29
+Type: potential_issue
+
+Comment:
+Duplicate YAML key segment_chunking_enabled with conflicting values.
+
+This key is defined twice:
+- Line 29: segment_chunking_enabled: true
+- Line 68: segment_chunking_enabled: false
+
+YAML parsers silently use the last occurrence (false), making the line 29 setting ineffective. This is confusing and error-prone.
+
+
+
+🐛 Proposed fix: Remove duplicate and clarify intent
+
+If the intent is "FULL-VIDEO-FIRST with chunking disabled":
+
+   auto_continuity_merge_enabled: true
+-  segment_chunking_enabled: true
++  # Note: segment_chunking_enabled is set in the FULL-VIDEO-FIRST section below
+   segment_chunking_temporal_anchor_enabled: true
+
+
+Or consolidate by removing lines 67-68 if chunking should be enabled.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @sample_web_auto_solver_production.yaml.save at line 29, There are two conflicting occurrences of the YAML key segment_chunking_enabled (true at the earlier occurrence and false later); remove the duplicate and keep a single canonical setting that reflects the intended behavior (either set segment_chunking_enabled: true if you want chunking, or segment_chunking_enabled: false if you want it off), or consolidate surrounding configuration so only one segment_chunking_enabled appears; update any related comments or profile blocks nearby to clarify the intent (e.g., FULL-VIDEO-FIRST vs per-chunk processing) so future edits don’t reintroduce the conflict.
+
+
+
+============================================================================
+File: .specify/scripts/powershell/update-agent-context.ps1
+Line: 416
+Type: potential_issue
+
+Comment:
+Return $true for the 'generic' agent type.
+
+The 'generic' case only calls Write-Info without returning a value. Since Main checks if (-not (Update-SpecificAgent -Type $AgentType)) (line 469), this causes the script to exit with code 1 even though the operation succeeded.
+
+
+
+🐛 Proposed fix
+
+-        'generic'  { Write-Info 'Generic agent: no predefined context file. Use the agent-specific update script for your agent.' }
++        'generic'  { 
++            Write-Info 'Generic agent: no predefined context file. Use the agent-specific update script for your agent.'
++            return $true
++        }
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @.specify/scripts/powershell/update-agent-context.ps1 at line 416, The 'generic' switch branch in Update-SpecificAgent currently only calls Write-Info and doesn't return a value, causing Main's check (if (-not (Update-SpecificAgent -Type $AgentType))) to treat it as failure; update the 'generic' case in the Update-SpecificAgent function to explicitly return $true after calling Write-Info so the function signals success to Main.
+
+
+
+============================================================================
+File: atlas_correction_chat.py
+Line: 23 to 24
+Type: refactor_suggestion
+
+Comment:
+Import timezone for datetime fix.
+
+To fix the deprecated datetime.utcnow() on line 160, add timezone to the import.
+
+
+
+🔧 Update import
+
+-from datetime import datetime
++from datetime import datetime, timezone
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_correction_chat.py around lines 23 - 24, The import statement currently brings in datetime and Path but is missing timezone; update the import at the top (where datetime is imported) to also import timezone so the call to datetime.utcnow() in the code (the datetime.utcnow() usage around line where timestamps are generated) can be replaced with timezone-aware datetime usage—import timezone alongside datetime to enable creating timezone-aware datetimes (e.g., using datetime.now(timezone.utc)) and keep all references in the file like datetime.utcnow() consistent with timezone-aware replacements.
+
+
+
+============================================================================
+File: atlas_discord_bot.py
+Line: 131
+Type: potential_issue
+
+Comment:
+Use datetime.now(timezone.utc) instead of deprecated datetime.utcnow().
+
+datetime.utcnow() is deprecated since Python 3.12.
+
+
+
+🐛 Proposed fix
+
++from datetime import datetime, timezone
++
+ # In _flush_buffer:
+-            "exported_at": datetime.utcnow().isoformat(),
++            "exported_at": datetime.now(timezone.utc).isoformat(),
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_discord_bot.py at line 131, Replace the deprecated datetime.utcnow() call used when setting "exported_at" with an aware UTC timestamp: use datetime.now(timezone.utc).isoformat() instead of datetime.utcnow().isoformat(); also ensure timezone is imported from datetime (e.g., add "from datetime import datetime, timezone" or include timezone alongside existing imports) so the "exported_at" value is timezone-aware.
+
+
+
+============================================================================
+File: .specify/scripts/powershell/check-prerequisites.ps1
+Line: 140 to 147
+Type: potential_issue
+
+Comment:
+Status output is suppressed by Out-Null.
+
+The Test-FileExists and Test-DirHasFiles calls pipe to Out-Null, meaning the status messages ("✓ research.md", etc.) are not displayed in text mode. This appears intentional since the functions write directly to output, but the pattern is confusing.
+
+Looking more closely, the functions use Write-Output internally for the status lines, so piping to Out-Null completely hides the output. If status messages should appear, remove | Out-Null.
+
+
+
+🔧 Proposed fix if status output should be visible
+
+     # Show status of each potential document
+-    Test-FileExists -Path $paths.RESEARCH -Description 'research.md' | Out-Null
+-    Test-FileExists -Path $paths.DATA_MODEL -Description 'data-model.md' | Out-Null
+-    Test-DirHasFiles -Path $paths.CONTRACTS_DIR -Description 'contracts/' | Out-Null
+-    Test-FileExists -Path $paths.QUICKSTART -Description 'quickstart.md' | Out-Null
++    Test-FileExists -Path $paths.RESEARCH -Description 'research.md'
++    Test-FileExists -Path $paths.DATA_MODEL -Description 'data-model.md'
++    Test-DirHasFiles -Path $paths.CONTRACTS_DIR -Description 'contracts/'
++    Test-FileExists -Path $paths.QUICKSTART -Description 'quickstart.md'
+     
+     if ($IncludeTasks) {
+-        Test-FileExists -Path $paths.TASKS -Description 'tasks.md' | Out-Null
++        Test-FileExists -Path $paths.TASKS -Description 'tasks.md'
+     }
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @.specify/scripts/powershell/check-prerequisites.ps1 around lines 140 - 147, The status messages from Test-FileExists and Test-DirHasFiles are being suppressed because each call is piped to Out-Null; remove the trailing "| Out-Null" from the Test-FileExists and Test-DirHasFiles invocations (including the conditional block that checks $IncludeTasks and the calls using $paths.RESEARCH, $paths.DATA_MODEL, $paths.CONTRACTS_DIR, $paths.QUICKSTART, and $paths.TASKS) so the functions’ Write-Output status lines are displayed.
+
+
+
+============================================================================
+File: atlas_triplet_compare.py
+Line: 584
+Type: potential_issue
+
+Comment:
+Ambiguous character: EN DASH instead of HYPHEN-MINUS.
+
+Static analysis flagged this line as containing an EN DASH (–) instead of a regular hyphen (-). This could cause regex matching issues if copied or compared against user input containing standard hyphens.
+
+
+
+🔧 Proposed fix
+
+-            r"(?P\d{1,2}:\d{1,2}(?::\d{1,2})?(?:\.\d+)?)\s(?:->|=>|[-–—])\s(?P\d{1,2}:\d{1,2}(?::\d{1,2})?(?:\.\d+)?)",
++            r"(?P\d{1,2}:\d{1,2}(?::\d{1,2})?(?:\.\d+)?)\s(?:->|=>|[-\u2013\u2014])\s(?P\d{1,2}:\d{1,2}(?::\d{1,2})?(?:\.\d+)?)",
+
+
+
+Note: The existing regex already works for EN DASH matching, but using explicit Unicode escapes improves code clarity and prevents accidental character substitution during copy-paste.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_triplet_compare.py at line 584, The regex literal containing the range delimiter uses an EN DASH character (–) which is ambiguous; replace the literal en-dash with explicit Unicode escapes or ASCII hyphen escapes so the pattern is unambiguous — e.g., in the raw regex string used where the pattern contains "(?:->|=>|[-–—])" change the en-dash and em-dash to explicit escapes like "(?:->|=>|[-\u2013\u2014])" or use the ASCII hyphen "\x2d" option to ensure only the intended characters are matched; update the regex literal in place (the r"...(?P...)\s(?:->|=>|[-–—])\s(?P...)" pattern) accordingly.
+
+
+
+============================================================================
+File: atlas_triplet_compare.py
+Line: 2168 to 2189
+Type: potential_issue
+
+Comment:
+Redundant imports and bare except clause.
+
+1. Lines 2168 and 2189 import json inside the function, but json is already imported at the module level (line 19).
+2. Line 2186 uses a bare except: which is flagged by static analysis and can catch unexpected exceptions like KeyboardInterrupt.
+
+
+
+🔧 Proposed fix
+
+-        import json
+         parsed_preview: Any = None
+         try:
+             parsed_preview = json.loads(_clean_json_text(raw_text))
+         except Exception:
+             parsed_preview = None
+...
+     finally:
+         try:
+             chat_page.close()
+-        except:
++        except Exception:
+             pass
+
+-    import json
+     try:
+         parsed = json.loads(_clean_json_text(raw_text))
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_triplet_compare.py around lines 2168 - 2189, Remove the redundant local "import json" statements and rely on the module-level import, and replace the bare "except:" used when closing chat_page with a specific exception handler (e.g., "except Exception as e:" or "except (SomeSpecificError,) as e:") so you don't swallow critical exceptions; update the try/except around chat_page.close() in the function containing _clean_json_text/_chat_response_has_required_fields/_send_chat_prompt/_wait_for_new_chat_response_text to catch and optionally log the Exception (referencing chat_page.close() and the surrounding finally block) and delete the duplicate import json lines near the top and bottom of that snippet.
+
+
+
+============================================================================
+File: pipeline_runner.py
+Line: 694 to 696
+Type: potential_issue
+
+Comment:
+Use public API instead of private attribute: agent.set_console_output_enabled(False).
+
+The code accesses the private attribute _disable_console_output, which is fragile and will break if AgentScope changes its implementation. AgentScope provides a public API method for this: agent.set_console_output_enabled(False). Replace the private attribute assignment with this public method.
+
+
+Recommended fix
+
+         # Keep CLI output clean when AgentScope is used inside pipeline stages.
+-        agent._disable_console_output = True  # type: ignore[attr-defined]
++        agent.set_console_output_enabled(False)
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @pipeline_runner.py around lines 694 - 696, Replace the fragile private-attribute access on the agent instance (agent._disable_console_output = True) with the public API call agent.set_console_output_enabled(False); locate where agent._disable_console_output is set (inside the AgentScope/pipeline stage handling) and change it to call set_console_output_enabled(False) on the same agent object so the code uses the supported public method instead of a private attribute.
+
+
+
+============================================================================
+File: atlas_correction_chat.py
+Line: 160
+Type: potential_issue
+
+Comment:
+Use datetime.now(timezone.utc) instead of deprecated datetime.utcnow().
+
+datetime.utcnow() is deprecated since Python 3.12. For consistency with cost_report.py (which correctly uses datetime.now(timezone.utc)), update this line.
+
+
+
+🐛 Proposed fix
+
++from datetime import datetime, timezone
++
+ # In the lesson dict:
+-            "timestamp": datetime.utcnow().isoformat(),
++            "timestamp": datetime.now(timezone.utc).isoformat(),
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_correction_chat.py at line 160, Replace the deprecated datetime.utcnow() used when setting the "timestamp" field with datetime.now(timezone.utc); update the import to include timezone from datetime if not already present (or use datetime.now(tz=timezone.utc)) so the timestamp is timezone-aware and matches cost_report.py's approach; locate the assignment where "timestamp": datetime.utcnow().isoformat() is set and change it accordingly.
+
+
+
+============================================================================
+File: .specify/memory/constitution.md
+Line: 23 to 24
+Type: refactor_suggestion
+
+Comment:
+Cost control lacks enforcement mechanism.
+
+The constitution states "ميزانية الحلقة الواحدة لا تتجاوز $0.5" (episode budget must not exceed $0.5) but doesn't specify what happens when this limit is exceeded. Should the pipeline abort? Fall back to cheaper models? Queue for manual review?
+
+
+Add an enforcement clause:
+### IV. Cost Control
+- ميزانية الحلقة الواحدة لا تتجاوز $0.5
+- Enforcement: Pipeline MUST abort and queue for manual review when cost exceeds threshold
+- تتبع التكلفة في gemini_usage.jsonl
+- استخدام flash model كافتراضي، pro model فقط عند الضرورة
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @.specify/memory/constitution.md around lines 23 - 24, Update the constitution's Cost Control section to add an enforcement clause: under the existing "ميزانية الحلقة الوابة لا تتجاوز $0.5" and tracking line for gemini_usage.jsonl, add an "Enforcement" bullet that mandates the pipeline MUST abort and queue the episode for manual review when the per-episode cost exceeds $0.5, and add a model-selection rule that the flash model is used by default with pro only allowed when flagged as necessary; ensure the new bullets appear alongside the existing lines (e.g., under the IV. Cost Control heading that contains "ميزانية الحلقة الواحدة لا تتجاوز $0.5" and "تتبع التكلفة في gemini_usage.jsonl") so downstream code can rely on the explicit enforcement and default-model policy.
+
+
+
+============================================================================
+File: specs/001-4way-episode-solver/research.md
+Line: 103 to 113
+Type: potential_issue
+
+Comment:
+Dependency versions marked "any" create reproducibility risk.
+
+The dependency table lists several critical dependencies with "any" version, which can lead to breaking changes in production. This conflicts with the constitution's emphasis on deterministic behavior.
+
+
+For production stability, specify version constraints:
+
+| Dependency | Version | Purpose |
+|-----------|---------|---------|
+| Playwright | >=1.40.0 | Browser automation for Gemini Chat |
+| requests | >=2.31.0,=6.0 | Config loading |
+| google-auth | >=2.23.0 | Vertex AI authentication |
+| google-generativeai | >=0.3.0 | Gemini SDK (optional) |
+
+
+As per constitution principle II (Deterministic Validation), reproducibility is critical.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @specs/001-4way-episode-solver/research.md around lines 103 - 113, Update the "Key Dependencies" table in the R6 section to replace the vague "any" version entries with explicit, bounded version constraints for reproducibility: change the rows for Playwright, requests, pyyaml, google-auth, and google-generativeai to use concrete version specifiers (e.g., Playwright >=1.40.0, requests >=2.31.0,=6.0, google-auth >=2.23.0, google-generativeai >=0.3.0) so the table entries for those dependencies are deterministic and safe for production.
+
+
+
+============================================================================
+File: .claude/commands/speckit.clarify.md
+Line: 135 to 152
+Type: refactor_suggestion
+
+Comment:
+File write atomicity: ensure no data loss on failure.
+
+The spec requires writing the spec file "AFTER each integration" (line 149) but doesn't specify atomic write behavior. If the process crashes mid-write, the spec file could be corrupted.
+
+
+Recommend updating the implementation to:
+1. Write to a temporary file first
+2. Validate the written content
+3. Atomically rename/move to the target location
+
+This is especially critical since the workflow makes incremental updates.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @.claude/commands/speckit.clarify.md around lines 135 - 152, The "Save the spec file AFTER each integration" step must be made atomic to avoid corruption: implement the write as write-to-temp-file + validate + atomic-rename sequence so each incremental integration (the code that appends under "## Clarifications" / "### Session YYYY-MM-DD" and applies edits) writes changes to a temporary file, checks the temp file content/schema (or at least confirms the new text was fully written), and then performs an atomic move/rename to replace the original spec file; ensure this behavior is used by the routine that performs "Integration after EACH accepted answer" so every append/update is durably swapped in one operation.
+
+
+
+============================================================================
+File: specs/001-4way-episode-solver/spec.md
+Line: 34
+Type: potential_issue
+
+Comment:
+Fix formatting and capitalization inconsistency.
+
+Line 34 has a formatting error: "3.gIVEN" should be "3. Given" (space after number, proper capitalization).
+
+
+
+📝 Proposed fix
+
+-3.gIVEN نجمع الحلول الاربعة ونقارنهم ببعض ونختار الافضل او ننشئ حل جديد فيه مجموع ما تم حله من كل طريقة  WHEN يتم تشغيل 4-way pipeline, Then طريقة واحدة على الأقل تنتج حل بجودة ≥95%.
++3. Given نجمع الحلول الاربعة ونقارنهم ببعض ونختار الافضل او ننشئ حل جديد فيه مجموع ما تم حله من كل طريقة, When يتم تشغيل 4-way pipeline, Then طريقة واحدة على الأقل تنتج حل بجودة ≥95%.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @specs/001-4way-episode-solver/spec.md at line 34, Fix the formatting and capitalization in the step that currently reads "3.gIVEN نجمع الحلول الاربعة..." by adding a space after the number and normalizing the word to "Given" (i.e., change "3.gIVEN" to "3. Given") so the step reads correctly before the rest of the sentence referencing the 4-way pipeline and quality threshold.
+
+
+
+============================================================================
+File: specs/001-4way-episode-solver/research.md
+Line: 32 to 43
+Type: potential_issue
+
+Comment:
+Research documentation contains outdated FPS configuration values.
+
+The research notes document optimize_video_target_fps: 4.0 and vision_preencode_fps: 4.0, but the current production configuration (sample_web_auto_solver.yaml) specifies 8.0 for both parameters. The line numbers (343-372) and Python code snippet (fps=8) are accurate, but the YAML config values in the research document are incorrect and should be updated to reflect the current 8.0 settings.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @specs/001-4way-episode-solver/research.md around lines 32 - 43, The research note in specs/001-4way-episode-solver/research.md has outdated FPS values; update the YAML examples so optimize_video_target_fps and vision_preencode_fps are 8.0 (matching sample_web_auto_solver.yaml) and make the text consistent with the atlas_triplet_compare.py clip encoding line that uses fps=8; ensure both parameter names (optimize_video_target_fps, vision_preencode_fps) and any explanatory prose reflect 8.0 instead of 4.0.
+
+
+
+============================================================================
+File: atlas_drive_indexer.py
+Line: 185 to 186
+Type: potential_issue
+
+Comment:
+Add missing import and replace deprecated datetime.utcnow() with timezone-aware alternative.
+
+datetime.utcnow() is deprecated as of Python 3.12. Use datetime.now(timezone.utc) for a timezone-aware UTC timestamp. This requires importing timezone from the datetime module.
+
+
+♻️ Proposed fix
+
+Update the import statement (line 16):
+-from datetime import datetime
++from datetime import datetime, timezone
+
+
+Update line 185:
+-                "indexed_at": datetime.utcnow().isoformat(),
++                "indexed_at": datetime.now(timezone.utc).isoformat(),
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @atlas_drive_indexer.py around lines 185 - 186, Replace the deprecated call datetime.utcnow() used in the "indexed_at" assignment with a timezone-aware timestamp and add the missing timezone import: update the import from datetime to include timezone (e.g., from datetime import datetime, timezone) and change the code setting "indexed_at" from datetime.utcnow().isoformat() to datetime.now(timezone.utc).isoformat().
+
+
+
+============================================================================
+File: README.md
+Line: 181 to 193
+Type: potential_issue
+
+Comment:
+The backslash syntax is intentionally supported but unconventional for URLs—clarify in the documentation.
+
+The code explicitly normalizes backslashes to forward slashes in _parse_drive_folder_file_ref() (line 271: normalized = src.replace("\\", "/")), so both separators work. However, showing backslashes in a URL example is unconventional since URLs standardly use forward slashes. Either document that both formats are accepted or use forward slashes consistently in examples for clarity.
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @README.md around lines 181 - 193, The README shows backslashes in Google Drive URLs which is unconventional; update the example in README.md to use standard forward slashes (e.g., .../video_68d3c4ff6427d8caac511a05.mp4) or add a short note stating that the code's _parse_drive_folder_file_ref() normalizes backslashes to forward slashes (normalized = src.replace("\\", "/")) so both separators are accepted; ensure the example and the clarification reference the gdrive remote and the relevant flags (--video-path, --tier2-path, etc.).
+
+

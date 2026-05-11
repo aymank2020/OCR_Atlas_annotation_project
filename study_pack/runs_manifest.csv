@@ -1,0 +1,73 @@
+run_name,status,generated_at,episodes_collected,feedback_entries_found,gemini_status,error,mtime,path
+training_feedback_20260301_015723,error,2026-03-01T01:57:24.036456,0,0,,"BrowserContext.new_page: Target page, context or browser has been closed",2026-03-01T01:57:24,outputs\training_feedback\runs\training_feedback_20260301_015723
+training_feedback_20260301_005329,ok,2026-03-01T00:57:23.982008,20,40,ok,,2026-03-01T00:57:23,outputs\training_feedback\runs\training_feedback_20260301_005329
+training_feedback_20260228_234958,ok,2026-02-28T23:53:29.371237,20,40,ok,,2026-02-28T23:53:29,outputs\training_feedback\runs\training_feedback_20260228_234958
+training_feedback_20260228_224828,warning,2026-02-28T22:49:58.972331,0,0,error,,2026-02-28T22:49:58,outputs\training_feedback\runs\training_feedback_20260228_224828
+training_feedback_20260228_214819,error,2026-02-28T21:48:28.800053,0,0,,"Page.goto: net::ERR_NETWORK_CHANGED at https://audit.atlascapture.io/disputes Call log: - navigating to ""https://audit.atlascapture.io/disputes"", waiting until ""domcontentloaded""",2026-02-28T21:48:28,outputs\training_feedback\runs\training_feedback_20260228_214819
+training_feedback_20260228_204501,ok,2026-02-28T20:48:19.959259,20,40,ok,,2026-02-28T20:48:19,outputs\training_feedback\runs\training_feedback_20260228_204501
+training_feedback_20260228_194130,ok,2026-02-28T19:45:01.359145,20,40,ok,,2026-02-28T19:45:01,outputs\training_feedback\runs\training_feedback_20260228_194130
+training_feedback_20260228_183821,ok,2026-02-28T18:41:29.995634,20,40,ok,,2026-02-28T18:41:29,outputs\training_feedback\runs\training_feedback_20260228_183821
+training_feedback_20260228_173512,ok,2026-02-28T17:38:21.093305,20,40,ok,,2026-02-28T17:38:21,outputs\training_feedback\runs\training_feedback_20260228_173512
+training_feedback_20260228_163126,ok,2026-02-28T16:35:12.658937,20,40,ok,,2026-02-28T16:35:12,outputs\training_feedback\runs\training_feedback_20260228_163126
+training_feedback_20260228_054841,ok,2026-02-28T05:52:07.111467,20,40,ok,,2026-02-28T05:52:07,outputs\training_feedback\runs\training_feedback_20260228_054841
+training_feedback_20260228_052340,ok,2026-02-28T05:26:57.116362,20,40,ok,,2026-02-28T05:26:57,outputs\training_feedback\runs\training_feedback_20260228_052340
+training_feedback_20260228_051826,ok,2026-02-28T05:21:53.398845,20,40,ok,,2026-02-28T05:21:53,outputs\training_feedback\runs\training_feedback_20260228_051826
+training_feedback_20260228_041518,ok,2026-02-28T04:18:26.800260,20,40,ok,,2026-02-28T04:18:26,outputs\training_feedback\runs\training_feedback_20260228_041518
+training_feedback_20260228_041024,warning,2026-02-28T04:13:32.294743,20,40,error,,2026-02-28T04:13:32,outputs\training_feedback\runs\training_feedback_20260228_041024
+training_feedback_20260228_032132,ok,2026-02-28T03:24:41.893041,20,40,ok,,2026-02-28T03:24:41,outputs\training_feedback\runs\training_feedback_20260228_032132
+training_feedback_20260228_030736,warning,2026-02-28T03:10:24.124017,20,40,error,,2026-02-28T03:10:24,outputs\training_feedback\runs\training_feedback_20260228_030736
+training_feedback_20260228_021759,ok,2026-02-28T02:21:32.668148,20,40,ok,,2026-02-28T02:21:32,outputs\training_feedback\runs\training_feedback_20260228_021759
+training_feedback_20260228_020418,warning,2026-02-28T02:07:36.187976,20,40,error,,2026-02-28T02:07:36,outputs\training_feedback\runs\training_feedback_20260228_020418
+training_feedback_20260228_010355,ok,2026-02-28T01:07:38.025014,20,40,ok,,2026-02-28T01:07:38,outputs\training_feedback\runs\training_feedback_20260228_010355
+training_feedback_20260228_005012,ok,2026-02-28T00:53:54.975450,20,40,ok,,2026-02-28T00:53:54,outputs\training_feedback\runs\training_feedback_20260228_005012
+training_feedback_20260228_003637,ok,2026-02-28T00:40:12.428543,20,40,ok,,2026-02-28T00:40:12,outputs\training_feedback\runs\training_feedback_20260228_003637
+training_feedback_20260228_002244,ok,2026-02-28T00:26:37.110256,20,40,ok,,2026-02-28T00:26:37,outputs\training_feedback\runs\training_feedback_20260228_002244
+training_feedback_20260228_000812,ok,2026-02-28T00:12:44.197901,20,40,ok,,2026-02-28T00:12:44,outputs\training_feedback\runs\training_feedback_20260228_000812
+training_feedback_20260227_235438,ok,2026-02-27T23:58:12.671929,20,40,ok,,2026-02-27T23:58:12,outputs\training_feedback\runs\training_feedback_20260227_235438
+training_feedback_20260227_234431,error,2026-02-27T23:44:38.337849,0,0,,"Page.wait_for_timeout: Target page, context or browser has been closed",2026-02-27T23:44:38,outputs\training_feedback\runs\training_feedback_20260227_234431
+training_feedback_20260227_234021,error,2026-02-27T23:40:29.728272,0,0,,"Page.goto: net::ERR_TOO_MANY_REDIRECTS at https://audit.atlascapture.io/disputes Call log: - navigating to ""https://audit.atlascapture.io/disputes"", waiting until ""domcontentloaded""",2026-02-27T23:40:29,outputs\training_feedback\runs\training_feedback_20260227_234021
+training_feedback_20260227_233013,error,2026-02-27T23:30:21.646990,0,0,,"Page.goto: net::ERR_TOO_MANY_REDIRECTS at https://audit.atlascapture.io/disputes Call log: - navigating to ""https://audit.atlascapture.io/disputes"", waiting until ""domcontentloaded""",2026-02-27T23:30:21,outputs\training_feedback\runs\training_feedback_20260227_233013
+training_feedback_20260227_231636,ok,2026-02-27T23:20:13.409178,20,40,ok,,2026-02-27T23:20:13,outputs\training_feedback\runs\training_feedback_20260227_231636
+training_feedback_20260227_230314,ok,2026-02-27T23:06:36.181574,20,40,ok,,2026-02-27T23:06:36,outputs\training_feedback\runs\training_feedback_20260227_230314
+training_feedback_20260227_224943,ok,2026-02-27T22:53:14.343682,20,40,ok,,2026-02-27T22:53:14,outputs\training_feedback\runs\training_feedback_20260227_224943
+training_feedback_20260227_223616,ok,2026-02-27T22:39:43.849314,20,40,ok,,2026-02-27T22:39:43,outputs\training_feedback\runs\training_feedback_20260227_223616
+training_feedback_20260227_222242,ok,2026-02-27T22:26:16.033461,20,40,ok,,2026-02-27T22:26:16,outputs\training_feedback\runs\training_feedback_20260227_222242
+training_feedback_20260227_220925,ok,2026-02-27T22:12:42.698968,20,40,ok,,2026-02-27T22:12:42,outputs\training_feedback\runs\training_feedback_20260227_220925
+training_feedback_20260227_215554,ok,2026-02-27T21:59:25.249298,20,40,ok,,2026-02-27T21:59:25,outputs\training_feedback\runs\training_feedback_20260227_215554
+training_feedback_20260227_214228,ok,2026-02-27T21:45:54.872416,20,40,ok,,2026-02-27T21:45:54,outputs\training_feedback\runs\training_feedback_20260227_214228
+training_feedback_20260227_212850,ok,2026-02-27T21:32:28.853283,20,40,ok,,2026-02-27T21:32:28,outputs\training_feedback\runs\training_feedback_20260227_212850
+training_feedback_20260227_211526,ok,2026-02-27T21:18:50.546244,20,40,ok,,2026-02-27T21:18:50,outputs\training_feedback\runs\training_feedback_20260227_211526
+training_feedback_20260227_210207,ok,2026-02-27T21:05:26.458168,20,40,ok,,2026-02-27T21:05:26,outputs\training_feedback\runs\training_feedback_20260227_210207
+training_feedback_20260227_204840,ok,2026-02-27T20:52:07.346319,20,40,ok,,2026-02-27T20:52:07,outputs\training_feedback\runs\training_feedback_20260227_204840
+training_feedback_20260227_203511,ok,2026-02-27T20:38:40.156199,20,40,ok,,2026-02-27T20:38:40,outputs\training_feedback\runs\training_feedback_20260227_203511
+training_feedback_20260227_202152,ok,2026-02-27T20:25:11.395138,20,40,ok,,2026-02-27T20:25:11,outputs\training_feedback\runs\training_feedback_20260227_202152
+training_feedback_20260227_200813,ok,2026-02-27T20:11:52.564076,20,40,ok,,2026-02-27T20:11:52,outputs\training_feedback\runs\training_feedback_20260227_200813
+training_feedback_20260227_195444,ok,2026-02-27T19:58:13.412048,20,40,ok,,2026-02-27T19:58:13,outputs\training_feedback\runs\training_feedback_20260227_195444
+training_feedback_20260227_194115,ok,2026-02-27T19:44:44.300862,20,40,ok,,2026-02-27T19:44:44,outputs\training_feedback\runs\training_feedback_20260227_194115
+training_feedback_20260227_192801,ok,2026-02-27T19:31:15.504634,20,40,ok,,2026-02-27T19:31:15,outputs\training_feedback\runs\training_feedback_20260227_192801
+training_feedback_20260227_191447,ok,2026-02-27T19:18:01.335921,20,40,ok,,2026-02-27T19:18:01,outputs\training_feedback\runs\training_feedback_20260227_191447
+training_feedback_20260227_190123,ok,2026-02-27T19:04:47.240269,20,40,ok,,2026-02-27T19:04:47,outputs\training_feedback\runs\training_feedback_20260227_190123
+training_feedback_20260227_184743,ok,2026-02-27T18:51:23.533756,20,40,ok,,2026-02-27T18:51:23,outputs\training_feedback\runs\training_feedback_20260227_184743
+training_feedback_20260227_183418,ok,2026-02-27T18:37:43.439274,20,40,ok,,2026-02-27T18:37:43,outputs\training_feedback\runs\training_feedback_20260227_183418
+training_feedback_20260227_182047,ok,2026-02-27T18:24:18.194447,20,40,ok,,2026-02-27T18:24:18,outputs\training_feedback\runs\training_feedback_20260227_182047
+training_feedback_20260227_180722,ok,2026-02-27T18:10:47.077616,20,40,ok,,2026-02-27T18:10:47,outputs\training_feedback\runs\training_feedback_20260227_180722
+training_feedback_20260227_175409,ok,2026-02-27T17:57:22.127604,20,40,ok,,2026-02-27T17:57:22,outputs\training_feedback\runs\training_feedback_20260227_175409
+training_feedback_20260227_174043,ok,2026-02-27T17:44:09.343698,20,40,ok,,2026-02-27T17:44:09,outputs\training_feedback\runs\training_feedback_20260227_174043
+training_feedback_20260227_172722,ok,2026-02-27T17:30:43.653816,20,40,ok,,2026-02-27T17:30:43,outputs\training_feedback\runs\training_feedback_20260227_172722
+training_feedback_20260227_171256,ok,2026-02-27T17:17:22.408255,20,40,ok,,2026-02-27T17:17:22,outputs\training_feedback\runs\training_feedback_20260227_171256
+training_feedback_20260227_165808,ok,2026-02-27T17:02:56.790735,20,40,ok,,2026-02-27T17:02:56,outputs\training_feedback\runs\training_feedback_20260227_165808
+training_feedback_20260227_164836,ok,2026-02-27T16:52:41.772989,20,40,ok,,2026-02-27T16:52:41,outputs\training_feedback\runs\training_feedback_20260227_164836
+training_feedback_20260227_163801,error,2026-02-27T16:38:36.854165,0,0,,"Page.goto: Target page, context or browser has been closed",2026-02-27T16:38:36,outputs\training_feedback\runs\training_feedback_20260227_163801
+training_feedback_20260227_162339,ok,2026-02-27T16:28:01.473395,20,40,ok,,2026-02-27T16:28:01,outputs\training_feedback\runs\training_feedback_20260227_162339
+training_feedback_20260227_160920,ok,2026-02-27T16:13:39.489288,20,40,ok,,2026-02-27T16:13:39,outputs\training_feedback\runs\training_feedback_20260227_160920
+training_feedback_20260227_160305,unknown,,0,0,,,2026-02-27T16:03:05,outputs\training_feedback\runs\training_feedback_20260227_160305
+training_feedback_20260227_155958,ok,2026-02-27T16:01:21.095610,3,40,skipped,,2026-02-27T16:01:21,outputs\training_feedback\runs\training_feedback_20260227_155958
+training_feedback_20260227_154845,ok,2026-02-27T15:53:05.563847,20,40,ok,,2026-02-27T15:53:05,outputs\training_feedback\runs\training_feedback_20260227_154845
+training_feedback_20260227_153423,ok,2026-02-27T15:38:45.910036,20,40,ok,,2026-02-27T15:38:45,outputs\training_feedback\runs\training_feedback_20260227_153423
+training_feedback_20260227_144146,ok,2026-02-27T14:47:05.001888,20,40,ok,,2026-02-27T14:47:05,outputs\training_feedback\runs\training_feedback_20260227_144146
+training_feedback_20260227_143554,ok,2026-02-27T14:39:40.176209,20,40,ok,,2026-02-27T14:39:40,outputs\training_feedback\runs\training_feedback_20260227_143554
+training_feedback_20260227_142602,ok,2026-02-27T14:31:46.202630,20,40,ok,,2026-02-27T14:31:46,outputs\training_feedback\runs\training_feedback_20260227_142602
+training_feedback_20260227_142241,ok,2026-02-27T14:23:48.355730,1,40,skipped,,2026-02-27T14:23:48,outputs\training_feedback\runs\training_feedback_20260227_142241
+training_feedback_20260227_141852,ok,2026-02-27T14:20:02.522302,2,40,skipped,,2026-02-27T14:20:02,outputs\training_feedback\runs\training_feedback_20260227_141852
+training_feedback_20260227_135246,ok,,20,40,,,2026-02-27T13:57:54,outputs\training_feedback\runs\training_feedback_20260227_135246
+training_feedback_20260227_134606,ok,,20,40,,,2026-02-27T13:51:35,outputs\training_feedback\runs\training_feedback_20260227_134606

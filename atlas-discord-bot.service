@@ -1,0 +1,19 @@
+[Unit]
+Description=Atlas Discord Knowledge Auto-Fetch Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=atlas
+WorkingDirectory=/srv/atlas/OCR_annotation_Atlas
+EnvironmentFile=-/srv/atlas/OCR_annotation_Atlas/.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/srv/atlas/OCR_annotation_Atlas/run_discord_bot_service.sh
+Restart=always
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

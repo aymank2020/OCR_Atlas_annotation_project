@@ -1,0 +1,410 @@
+# ═══════════════════════════════════════════════════════════════════
+# Atlas Capture — Adaptive Selectors Configuration
+# ═══════════════════════════════════════════════════════════════════
+# 
+# Edit this file when Atlas changes its UI (button labels, CSS classes, etc.)
+# The auto-solver loads these at startup and uses them as overrides.
+#
+# Each selector has:
+#   strategies: list of Playwright selectors tried in order (first match wins)
+#   intent: human description of what we're looking for
+#
+# Strategy types (from most to least stable):
+#   1. ID/attribute:  #email, [data-testid="btn"], [aria-label="Close"]
+#   2. Role + text:   button:has-text("Reserve")
+#   3. Structural:    form >> button:last-child
+#   4. Regex:         text=/reserve/i
+#   5. CSS class:     button.bg-gradient-to-r
+#
+# ═══════════════════════════════════════════════════════════════════
+
+selectors:
+
+  # ── Login ───────────────────────────────────────────────────────
+
+  email_input:
+    intent: "Email input field on login page"
+    strategies:
+      - '#email'
+      - 'input#email'
+      - 'input[type="email"]'
+      - 'input[autocomplete="email"]'
+      - 'input[placeholder*="email" i]'
+      - 'input[placeholder*="example" i]'
+
+  start_button:
+    intent: "Main CTA button on login page (text may change)"
+    strategies:
+      - 'button[type="submit"]'
+      - 'button:has-text("Start")'
+      - 'button:has-text("Earning")'
+      - 'button:has-text("Begin")'
+      - 'button:has-text("Join")'
+      - 'button:has-text("Sign")'
+      - 'button:has-text("Log in")'
+      - 'button:has-text("Continue")'
+      - 'form >> button'
+      - 'button.bg-gradient-to-r'
+
+  otp_input:
+    intent: "OTP/Code input field for email verification"
+    strategies:
+      - '#code'
+      - 'input#code'
+      - 'input[inputmode="numeric"]'
+      - 'input[placeholder="000000"]'
+      - 'input[placeholder*="code" i]'
+      - 'input[autocomplete="one-time-code"]'
+      - 'input[maxlength="6"]'
+
+  verify_button:
+    intent: "Verify/Confirm OTP button"
+    strategies:
+      - 'button[type="submit"]'
+      - 'button:has-text("Verify")'
+      - 'button:has-text("Confirm")'
+      - 'button:has-text("Submit")'
+      - 'button:has-text("Continue")'
+      - 'form >> button'
+
+  # ── Navigation ──────────────────────────────────────────────────
+
+  tasks_nav:
+    intent: "Navigate to Tasks page"
+    strategies:
+      - 'a[href*="/tasks"]'
+      - 'a:has-text("Tasks")'
+      - 'button:has-text("Tasks")'
+      - '[data-testid*="tasks"]'
+      - 'nav >> a:has-text("Task")'
+
+  enter_workflow_button:
+    intent: "Enter Standard Workflow button"
+    strategies:
+      - 'button:has-text("Enter")'
+      - 'button:has-text("Standard Workflow")'
+      - 'button:has-text("Workflow")'
+      - 'button:has-text("Browse Tasks")'
+      - 'text=/enter\s+.*workflow/i'
+      - 'button:has-text("Start Workflow")'
+      - 'button:has-text("Begin Workflow")'
+      - 'a:has-text("Workflow")'
+      - 'a:has-text("Browse Tasks")'
+
+  continue_room_button:
+    intent: "Continue to Room button"
+    strategies:
+      - 'button:has-text("Continue")'
+      - 'button:has-text("Room")'
+      - 'text=/continue\s+to\s+room/i'
+      - 'button:has-text("Proceed")'
+      - 'button:has-text("Go to Room")'
+      - 'a:has-text("Room")'
+
+  label_button:
+    intent: "Label tab/button in task room"
+    strategies:
+      - 'button:has-text("Label")'
+      - 'a:has-text("Label")'
+      - 'text=/\blabel\b/i'
+      - '[role="tab"]:has-text("Label")'
+      - 'button:has-text("Annotate")'
+
+  label_task_link:
+    intent: "Link to an individual label task"
+    strategies:
+      - 'a[href*="/tasks/room/normal/label/"]'
+      - 'a[href*="/label/"]'
+      - 'a[href*="/task/"]'
+
+  # ── Reserve / Release ──────────────────────────────────────────
+
+  reserve_episodes_button:
+    intent: "Reserve episodes button (count in text may vary)"
+    strategies:
+      - 'button:has-text("Reserve")'
+      - 'text=/reserve\s+\d+\s+episode/i'
+      - 'text=/reserve\s+new/i'
+      - 'button[class*="reserve" i]'
+      - '[data-testid*="reserve"]'
+
+  confirm_reserve_button:
+    intent: "Confirm reserve action in dialog"
+    strategies:
+      - 'div[role="dialog"] button:has-text("Understand")'
+      - 'div[role="dialog"] button:has-text("Confirm")'
+      - 'div[role="dialog"] button:has-text("OK")'
+      - 'div[role="dialog"] button:has-text("Yes")'
+      - 'div[role="dialog"] button:has-text("Accept")'
+      - 'div[role="dialog"] button:has-text("Agree")'
+      - 'button:has-text("I Understand")'
+      - 'button:has-text("Confirm")'
+      - 'button:has-text("OK")'
+
+  release_all_button:
+    intent: "Release all reserved episodes"
+    strategies:
+      - 'button:has-text("Release All")'
+      - 'button:has-text("Release all")'
+      - 'button:has-text("Release Episodes")'
+      - 'button:has-text("Release")'
+      - 'text=/release\s*all/i'
+      - '[data-testid*="release"]'
+
+  confirm_release_button:
+    intent: "Confirm release in dialog"
+    strategies:
+      - 'div[role="dialog"] button:has-text("Release")'
+      - 'div[role="dialog"] button:has-text("Confirm")'
+      - 'div[role="dialog"] button:has-text("Yes")'
+      - 'div[role="dialog"] button:has-text("OK")'
+      - 'button:has-text("I Understand")'
+      - 'button:has-text("Understand")'
+      - 'text=/release\s*all/i'
+
+  error_go_back_button:
+    intent: "Go back button on error pages"
+    strategies:
+      - 'button:has-text("Go Back")'
+      - 'a:has-text("Go Back")'
+      - '[role="button"]:has-text("Go Back")'
+      - 'button:has-text("Back")'
+      - 'a:has-text("Back")'
+      - 'button:has-text("Return")'
+
+  # ── Video Player ────────────────────────────────────────────────
+
+  video_element:
+    intent: "Video player element"
+    strategies:
+      - 'video'
+      - '[data-testid*="video"]'
+      - 'video[src]'
+
+  video_source:
+    intent: "Video source element"
+    strategies:
+      - 'video source'
+      - 'video > source'
+
+  loop_toggle_button:
+    intent: "Toggle segment loop button"
+    strategies:
+      - 'button:has-text("Loop")'
+      - 'button[title*="loop" i]'
+      - 'button[title*="Toggle segment loop"]'
+      - 'button[aria-label*="loop" i]'
+      - 'text=/loop\s*(on|off)/i'
+
+  # ── Complete / Submit ───────────────────────────────────────────
+
+  complete_button:
+    intent: "Complete/Finish episode button (CRITICAL — may change)"
+    strategies:
+      - 'button:has-text("Complete")'
+      - 'button:has-text("Finish")'
+      - 'button:has-text("Done")'
+      - 'button:has-text("Submit Task")'
+      - 'button:has-text("Submit Episode")'
+      - 'button[type="submit"]:visible'
+      - '[data-testid*="complete"]'
+      - '[data-testid*="submit"]'
+      - 'text=/complete|finish|done/i'
+
+  quality_review_modal:
+    intent: "Quality review dialog/modal"
+    strategies:
+      - 'div[role="dialog"]:has-text("Quality")'
+      - 'div[role="dialog"]:has-text("Review")'
+      - 'div:has-text("Quality Review")'
+      - '[data-testid*="quality"]'
+      - '[data-testid*="review"]'
+
+  quality_review_checkbox:
+    intent: "Quality review confirmation checkbox"
+    strategies:
+      - 'input[type="checkbox"]'
+      - '[role="checkbox"]'
+      - 'label:has-text("verify")'
+      - 'label:has-text("reviewed")'
+      - 'label:has-text("confirm")'
+      - 'label:has-text("I have")'
+
+  quality_review_submit_button:
+    intent: "Submit button in quality review dialog"
+    strategies:
+      - 'div[role="dialog"] button:has-text("Submit")'
+      - 'div[role="dialog"] button:has-text("Confirm")'
+      - 'div[role="dialog"] button[type="submit"]'
+      - 'button:has-text("Submit")'
+      - 'button:has-text("Send")'
+      - 'text=/submit/i'
+
+  submit_success_toast:
+    intent: "Success notification after submitting labels"
+    strategies:
+      - '[role="alert"]:has-text("success")'
+      - '[role="status"]:has-text("submitted")'
+      - '[data-testid*="toast"]:has-text("success")'
+      - 'div[class*="toast"]:has-text("success")'
+      - 'div[class*="notification"]:has-text("success")'
+      - 'text=/successfully submitted/i'
+      - 'text=/submission complete/i'
+      - 'text=/labels saved/i'
+
+  submit_confirm_dialog:
+    intent: "Confirmation dialog before final submit"
+    strategies:
+      - 'div[role="dialog"]:has-text("Submit")'
+      - 'div[role="dialog"]:has-text("Confirm")'
+      - 'div[role="alertdialog"]:has-text("submit")'
+      - '[data-testid*="confirm-dialog"]'
+
+  error_submit_toast:
+    intent: "Error notification after failed submission"
+    strategies:
+      - '[role="alert"]:has-text("error")'
+      - '[role="alert"]:has-text("failed")'
+      - 'div[class*="toast"]:has-text("error")'
+      - 'div[class*="toast"]:has-text("failed")'
+      - 'text=/submission failed/i'
+      - 'text=/error submitting/i'
+
+  # ── Side Panel ──────────────────────────────────────────────────
+
+  blocking_side_panel:
+    intent: "Floating side panel that blocks interaction"
+    strategies:
+      - 'div[class*="fixed"][class*="right-4"][class*="z-50"][class*="slide-in-from-right"]'
+      - 'div[class*="fixed"][class*="right-4"][class*="z-50"][class*="shadow-2xl"]'
+      - 'div[class*="fixed"][class*="z-50"]:visible'
+
+  blocking_side_panel_close:
+    intent: "Close button for blocking side panel"
+    strategies:
+      - 'button[aria-label*="close" i]'
+      - 'button[title*="close" i]'
+      - 'button:has-text("Close")'
+      - 'button:has-text("Dismiss")'
+      - 'button:has-text("Done")'
+      - 'button:has-text("Cancel")'
+      - '[role="button"]:has-text("Close")'
+      - 'button:has(svg.lucide-x)'
+
+  # ── Segment Interaction ─────────────────────────────────────────
+
+  segment_rows:
+    intent: "List of segment rows in the labeling view"
+    strategies:
+      - 'div.space-y-1.p-2 > div.rounded-lg.border.p-3'
+      - '[data-testid*="segment"]'
+      - '[data-cy*="segment"]'
+      - '.segment-row'
+      - '.seg-item'
+      - '[class*="segment"][class*="row"]'
+
+  segment_label:
+    intent: "Label text inside a segment row"
+    strategies:
+      - 'p[title*="Double-click"]'
+      - 'p[title*="click to edit" i]'
+      - 'p.text-sm.font-medium.cursor-text'
+      - '[data-testid*="label"]'
+      - '[data-cy*="label"]'
+      - '.segment-label'
+      - '[class*="label"]'
+
+  segment_start:
+    intent: "Start timestamp in a segment row"
+    strategies:
+      - 'span.font-mono.text-xs'
+      - '[data-testid*="start"]'
+      - '[data-cy*="start"]'
+
+  segment_end:
+    intent: "End timestamp in a segment row"
+    strategies:
+      - 'span.font-mono.text-xs.px-1\\.5.py-0\\.5'
+      - '[data-testid*="end"]'
+      - '[data-cy*="end"]'
+
+  segment_time_plus_button:
+    intent: "Plus button for adjusting segment timestamps"
+    strategies:
+      - 'button:has(svg.lucide-plus)'
+      - 'button[aria-label*="increase" i]'
+      - 'button[title*="plus" i]'
+      - 'button:has-text("+")'
+
+  segment_time_minus_button:
+    intent: "Minus button for adjusting segment timestamps"
+    strategies:
+      - 'button:has(svg.lucide-minus)'
+      - 'button[aria-label*="decrease" i]'
+      - 'button[title*="minus" i]'
+      - 'button:has-text("-")'
+
+  edit_button_in_row:
+    intent: "Edit button inside a segment row"
+    strategies:
+      - 'button[title*="Edit"]'
+      - 'button:has-text("Edit")'
+      - '[aria-label*="Edit"]'
+      - 'button:has(svg.lucide-pencil)'
+      - 'button:has(svg.lucide-edit)'
+
+  split_button_in_row:
+    intent: "Split button inside a segment row"
+    strategies:
+      - 'button[title*="Split"]'
+      - '[aria-label*="Split"]'
+      - 'button:has(svg.lucide-scissors)'
+      - 'button:has-text("Split")'
+
+  delete_button_in_row:
+    intent: "Delete button inside a segment row"
+    strategies:
+      - 'button[title*="Delete"]'
+      - '[aria-label*="Delete"]'
+      - 'button:has(svg.lucide-trash)'
+      - 'button:has(svg.lucide-trash-2)'
+      - 'button:has-text("Delete")'
+      - 'button:has-text("Remove")'
+
+  merge_button_in_row:
+    intent: "Merge button inside a segment row"
+    strategies:
+      - 'button[title*="Merge"]'
+      - '[aria-label*="Merge"]'
+      - 'button:has(svg.lucide-git-merge)'
+      - 'button:has-text("Merge")'
+      - 'button:has-text("Combine")'
+
+  action_confirm_button:
+    intent: "Confirm action in dialog (delete/merge/split)"
+    strategies:
+      - 'button:has-text("Confirm")'
+      - 'button:has-text("Yes")'
+      - 'button:has-text("Delete")'
+      - 'button:has-text("Merge")'
+      - 'button:has-text("Apply")'
+      - 'button:has-text("Continue")'
+      - 'button:has-text("OK")'
+
+  label_input:
+    intent: "Text input for editing a segment label"
+    strategies:
+      - 'textarea'
+      - '[contenteditable="true"]'
+      - 'input[type="text"]'
+      - '[data-testid*="label-input"]'
+
+  save_button:
+    intent: "Save button after editing a label"
+    strategies:
+      - 'button:has-text("Save")'
+      - 'button:has-text("Apply")'
+      - 'button:has-text("Done")'
+      - 'button:has-text("Submit")'
+      - 'button:has-text("OK")'
+      - 'button[type="submit"]'

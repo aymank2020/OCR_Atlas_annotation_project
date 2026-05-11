@@ -1,0 +1,17 @@
+# Core Engine
+faster-whisper
+soundcard
+numpy<2.0.0
+pyyaml
+python-dotenv
+google-genai
+nvidia-cublas-cu12
+nvidia-cudnn-cu12
+silero-vad
+websockets
+torch
+fastapi
+uvicorn
+
+# Dashboard
+streamlit

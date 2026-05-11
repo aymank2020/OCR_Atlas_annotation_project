@@ -1,0 +1,38 @@
+# CodeRabbit Configuration for Atlas OCR Annotation Project
+# ────────────────────────────────────────────────────────
+# This file guides CodeRabbit to focus on project-specific quality rules.
+
+language: "en-US"
+
+reviews:
+  # Enable deep structural reviews
+  high_level_summary: true
+  auto_review:
+    enabled: true
+    # Focus on Python and YAML configurations
+    path_filters:
+      - "**/*.py"
+      - "**/*.yaml"
+      - "**/*.json"
+
+  # PROJECT-SPECIFIC GUIDELINES (The "Audit Rules")
+  # CodeRabbit will use these instructions during every review.
+  instructions: |
+    You are a Senior QA Auditor for the Atlas Video Annotation project.
+    When reviewing labels, Python logic, or prompts, enforce these strict rules:
+    
+    1. IMPERATIVE LANGUAGE: All labels must start with an action verb (e.g., "Sew fabric", not "The person is sewing").
+    2. NO NUMERALS: Never allow "2", "3", etc. They must be written as "two", "three".
+    3. NO INTENT: Flag any words like "prepare to", "try to", "about to", "prepare for".
+    4. NO PRONOUNS: Flag "he", "she", "they", "I", "we". Labels should be objective (e.g., "Move hand").
+    5. NO PLACEHOLDERS: Flag any "...", "etc", or "TBD" in the code or prompts.
+    6. TIMESTAMP VALIDATOR: Pay close attention to timestamp logic in Python. Ensure end_sec is always > start_sec and overlaps are handled.
+    7. SECURITY: Ensure service account keys (JSON) are NEVER committed to git (check .gitignore).
+    
+chat:
+  # Allow the team to ask questions to the bot
+  enabled: true
+
+# Advanced: Knowledge Base integration
+learnings:
+  enabled: true

@@ -1,0 +1,22 @@
+[
+  {
+    "episode_id": "69058134195aa3923b59481c",
+    "date": "2026-03-26",
+    "rule_violated": "RULE-HOLD",
+    "ai_label": "hold phone assembly to check charging status",
+    "corrected_label": "hold phone assembly",
+    "explanation": "AI invented intent 'to check charging status'. Hold labels must never include purpose or intent.",
+    "segment_index": 16,
+    "severity": "HIGH"
+  },
+  {
+    "episode_id": "69058134195aa3923b59481c",
+    "date": "2026-03-26",
+    "rule_violated": "RULE-MERGE",
+    "ai_label": "Seg6: hold probes on battery terminals (23.5-33.5) + Seg7: continue holding probes on battery terminals (33.5-40.5)",
+    "corrected_label": "hold probes on battery terminals (23.5-40.5) — merged into 1 segment",
+    "explanation": "Consecutive segments with same action totaling 17s should be merged (under 60s cap). AI kept them separate.",
+    "segment_index": "6-7",
+    "severity": "HIGH"
+  }
+]

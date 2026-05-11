@@ -1,0 +1,74 @@
+# ═══════════════════════════════════════════════════════════════════
+# Atlas Command Hub — Unified Service Registry
+# All Atlas localhost services with fixed port assignments
+# ═══════════════════════════════════════════════════════════════════
+
+hub:
+  port: 8500
+  title: "Atlas Command Hub"
+  icon: "🏛️"
+  auto_refresh_sec: 3
+
+services:
+  local_bridge:
+    name: "Atlas Local Bridge"
+    port: 8766
+    script: "atlas_local_bridge.py"
+    command: "python -m uvicorn atlas_local_bridge:app --host 127.0.0.1 --port 8766"
+    icon: "🧩"
+    description: "Local FastAPI bridge for the Atlas Chrome extension shell"
+    category: "Extension"
+
+  scribe:
+    name: "Atlas Scribe"
+    port: 8501
+    script: "atlas_scribe_dashboard.py"
+    command: "streamlit run atlas_scribe_dashboard.py --server.port 8501 --server.headless true"
+    icon: "🎙️"
+    description: "Real-time audio transcription + Gemini AI enrichment"
+    category: "AI Tools"
+
+  control_center:
+    name: "Atlas Control Center"
+    port: 8502
+    script: "atlas_control_center.py"
+    command: "streamlit run atlas_control_center.py --server.port 8502 --server.headless true"
+    icon: "🏛️"
+    description: "VPS deployment, solver control, Discord questions"
+    category: "Operations"
+
+  pipeline_dashboard:
+    name: "Pipeline Dashboard"
+    port: 8503
+    script: "atlas_dashboard_v2.py"
+    command: "python atlas_dashboard_v2.py --outputs-dir outputs && cd outputs && python -m http.server 8503"
+    icon: "📊"
+    description: "Quality gate metrics, cost tracking, 7-day trends"
+    category: "Analytics"
+    type: "static_html"
+
+  rules_viewer:
+    name: "Rules Viewer"
+    port: 8504
+    script: "atlas_rules_viewer.html"
+    command: "python -m http.server 8504"
+    icon: "📜"
+    description: "Golden rules & policy reference"
+    category: "Knowledge"
+    type: "static_html"
+
+# ── Messaging Integrations ──────────────────────────────────────────
+
+messaging:
+  telegram:
+    enabled: true
+    bot_token_env: "TELEGRAM_BOT_TOKEN"
+    allowed_chat_ids_env: "TELEGRAM_ALLOWED_CHATS"
+    # Commands: /status, /pull, /logs, /run, /stop, /help
+
+  whatsapp:
+    enabled: true
+    phone_number_id_env: "WHATSAPP_PHONE_ID"
+    access_token_env: "WHATSAPP_TOKEN"
+    recipient_env: "WHATSAPP_RECIPIENT"
+    # Outbound notifications only (solver events, errors, alerts)

@@ -1,0 +1,75 @@
+audio:
+  source: both
+  sample_rate: 16000
+  chunk_duration_sec: 0.04
+  silence_threshold: 0.01
+  loopback_device: Speaker (2- Realtek(R) Audio)
+  microphone_device: Microphone Array (2- Intel® Smart Sound Technology for Digital
+    Microphones)
+streaming:
+  enabled: true
+  provider: deepgram
+  frame_ms: 40
+  interim_min_audio_ms: 240
+  interim_emit_ms: 350
+  final_silence_ms: 480
+  max_utterance_ms: 6500
+  prefix_padding_ms: 160
+  max_buffer_ms: 9000
+deepgram:
+  api_key_env: DEEPGRAM_API_KEY
+  model: nova-3
+  language: ''
+  encoding: linear16
+  interim_results: true
+  endpointing_ms: 300
+  utterance_end_ms: 1000
+  finalize_timeout_sec: 1.5
+  idle_keepalive_sec: 4.0
+vad:
+  enabled: true
+  backend: silero
+  threshold: 0.5
+  energy_threshold: 0.008
+  window_size_samples: 512
+  min_speech_ms: 120
+whisper:
+  model_size: large-v3
+  device: cuda
+  compute_type: float16
+  beam_size: 5
+  vad_filter: true
+  vad_min_silence_ms: 300
+  vad_speech_pad_ms: 200
+  language: null
+  task: transcribe
+recording:
+  enabled: true
+  output_dir: ./scribe_sessions
+  auto_export: true
+  max_session_hours: 8
+  export_formats:
+  - json
+  - txt
+  - srt
+gemini:
+  enabled: true
+  model: gemini-3.1-pro-preview
+  api_key_env: GEMINI_API_KEY
+  auto_summarize_on_stop: true
+  summary_language: ar
+  extract_rules: true
+translation:
+  enabled: false
+  provider: gemini
+  model: gemini-2.5-flash
+  api_key_env: GEMINI_API_KEY
+  target_language: ar
+  debounce_ms: 400
+  min_chars: 8
+  max_chars: 600
+dashboard:
+  port: 8503
+  auto_refresh_sec: 0.4
+  max_live_segments: 200
+  theme: dark

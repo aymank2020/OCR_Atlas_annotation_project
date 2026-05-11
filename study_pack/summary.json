@@ -1,0 +1,80 @@
+{
+  "generated_at": "2026-03-03T23:39:20",
+  "project_root": "E:\\OCR_annotation_Atlas",
+  "training_root": "E:\\OCR_annotation_Atlas\\outputs\\training_feedback",
+  "out_dir": "E:\\OCR_annotation_Atlas\\study_pack",
+  "runs_total": 72,
+  "runs_error": 6,
+  "episodes_unique": 73,
+  "episodes_with_errors": 0,
+  "episodes_with_warnings": 22,
+  "local_video_raw_linked": 52,
+  "local_video_opt_linked": 41,
+  "docs_count": 1,
+  "pdf_count": 0,
+  "docx_count": 1,
+  "drive_files_indexed": 1531,
+  "drive_errors": [],
+  "top_issues_preview": [
+    {
+      "severity": "warning",
+      "message": "segment 5: large timestamp drift from source",
+      "count": 12,
+      "example_episode": "a55faf08"
+    },
+    {
+      "severity": "warning",
+      "message": "segment 4: large timestamp drift from source",
+      "count": 11,
+      "example_episode": "a55faf08"
+    },
+    {
+      "severity": "warning",
+      "message": "segment 6: large timestamp drift from source",
+      "count": 11,
+      "example_episode": "a55faf08"
+    },
+    {
+      "severity": "warning",
+      "message": "segment 7: large timestamp drift from source",
+      "count": 11,
+      "example_episode": "fa460d2c"
+    },
+    {
+      "severity": "warning",
+      "message": "segment 3: large timestamp drift from source",
+      "count": 8,
+      "example_episode": "a55faf08"
+    },
+    {
+      "severity": "warning",
+      "message": "segment 9: large timestamp drift from source",
+      "count": 8,
+      "example_episode": "fa460d2c"
+    },
+    {
+      "severity": "warning",
+      "message": "segment 10: large timestamp drift from source",
+      "count": 8,
+      "example_episode": "fa460d2c"
+    },
+    {
+      "severity": "warning",
+      "message": "segment 11: large timestamp drift from source",
+      "count": 8,
+      "example_episode": "5142f786"
+    },
+    {
+      "severity": "warning",
+      "message": "segment 12: large timestamp drift from source",
+      "count": 8,
+      "example_episode": "5142f786"
+    },
+    {
+      "severity": "warning",
+      "message": "segment 13: large timestamp drift from source",
+      "count": 8,
+      "example_episode": "5142f786"
+    }
+  ]
+}

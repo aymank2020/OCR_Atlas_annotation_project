@@ -1,0 +1,23 @@
+supervisor:
+  log_file: "outputs/supervisor.log"
+  events_file: "outputs/supervisor_events.jsonl"
+
+processes:
+  # The Core Solver (Running in SAFE/DRY-RUN mode - 1 Episode Only)
+  solver:
+    # Notice: using dry_run_config.yaml which has max_episodes_per_run: 1
+    command: "python atlas_web_auto_solver.py --config dry_run_config.yaml" 
+    cwd: "."
+    
+    # RESTART POLICY: on_failure
+    # This means if the script finishes successfully (exit code 0), it will NOT restart.
+    # It will only restart if it crashes. This is perfect for "Try one idea only".
+    restart_policy: "on_failure"
+    
+    restart_delay_sec: 10
+    max_restarts_per_hour: 15
+    crash_signatures:
+      - "Quota exceeded"
+      - "429 Too Many Requests"
+      - "ERR_INTERNET_DISCONNECTED"
+      - "ERR_NAME_NOT_RESOLVED"

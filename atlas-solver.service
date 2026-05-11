@@ -1,0 +1,23 @@
+[Unit]
+Description=Atlas multi-account solver
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/srv/atlas/OCR_annotation_Atlas
+EnvironmentFile=-/srv/atlas/OCR_annotation_Atlas/.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/srv/atlas/OCR_annotation_Atlas/run_solver_hetzner.sh
+Restart=always
+RestartSec=20
+TimeoutStopSec=90
+KillSignal=SIGINT
+KillMode=control-group
+FinalKillSignal=SIGKILL
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

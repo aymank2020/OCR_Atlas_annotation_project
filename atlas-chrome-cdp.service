@@ -1,0 +1,44 @@
+[Unit]
+Description=Persistent Chrome for Gemini Chat Web (CDP on port 9222)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Environment=DISPLAY=:99
+
+ExecStartPre=/bin/bash -c 'if pgrep -x Xvfb >/dev/null; then pkill -x Xvfb; sleep 1; fi; rm -f /tmp/.X99-lock /tmp/.X11-unix/X99; rm -f /srv/atlas/OCR_annotation_Atlas/.state/gemini_chat_user_data/SingletonLock; (Xvfb :99 -screen 0 1920x1080x24 -ac +extension RANDR &) && sleep 2'
+
+ExecStart=/usr/bin/google-chrome-stable \
+  --remote-debugging-port=9222 \
+  --remote-debugging-address=127.0.0.1 \
+  --user-data-dir=/srv/atlas/OCR_annotation_Atlas/.state/gemini_chat_user_data \
+  --no-sandbox \
+  --test-type \
+  --disable-session-crashed-bubble \
+  --hide-crash-restore-bubble \
+  --disable-gpu \
+  --disable-software-rasterizer \
+  --disable-accelerated-video-decode \
+  --js-flags="--max-old-space-size=4096" \
+  --disable-blink-features=AutomationControlled \
+  --no-first-run \
+  --disable-default-apps \
+  --disable-extensions \
+  --disable-sync \
+  --disable-translate \
+  --metrics-recording-only \
+  --safebrowsing-disable-auto-update \
+  --mute-audio \
+  about:blank
+
+Restart=always
+RestartSec=3
+TimeoutStopSec=30
+
+LimitNOFILE=65536
+MemoryMax=6G
+
+[Install]
+WantedBy=multi-user.target

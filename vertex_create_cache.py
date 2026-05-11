@@ -1,0 +1,281 @@
+"""
+Create Vertex AI cached content from local prompt/context files.
+
+Usage:
+  python vertex_create_cache.py --config sample_web_auto_solver_vps.yaml
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from pathlib import Path
+from typing import Dict, Tuple
+
+import requests
+import yaml
+
+
+DEFAULT_SYSTEM_PROMPT = """You are a strict Atlas annotation QA judge.
+Follow these core rules:
+1) Timeline must be chronological, non-overlapping, and gapless.
+2) Max 2 atomic actions per segment.
+3) Use concise neutral imperative verbs.
+4) Use "No Action" only for true inactivity.
+5) Avoid temporal hallucination and invented actions/objects.
+6) Output strict JSON when requested by the calling prompt.
+""".strip()
+
+
+def _load_dotenv(path: Path) -> Dict[str, str]:
+    out: Dict[str, str] = {}
+    if not path.exists() or not path.is_file():
+        return out
+    for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = str(raw or "").strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        key = str(k or "").strip()
+        if not key:
+            continue
+        val = str(v or "").strip()
+        if len(val) >= 2 and ((val[0] == '"' and val[-1] == '"') or (val[0] == "'" and val[-1] == "'")):
+            val = val[1:-1]
+        out[key] = val
+    return out
+
+
+def _read_secret(name: str, dotenv: Dict[str, str]) -> str:
+    env_v = str(os.environ.get(name, "") or "").strip()
+    if env_v:
+        return env_v
+    return str(dotenv.get(name, "") or "").strip()
+
+
+def _read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def _try_read_file(path: Path) -> str:
+    if not path.exists() or not path.is_file():
+        return ""
+    try:
+        return _read_text(path).strip()
+    except (OSError, UnicodeDecodeError):
+        return ""
+
+
+def _approx_token_count(text: str) -> int:
+    # Rough estimate suitable for threshold checks.
+    words = len(str(text or "").split())
+    return int(words * 1.35)
+
+
+def _expand_context_with_repo_docs(base_context: str, repo_dir: Path) -> str:
+    text = str(base_context or "").strip()
+    candidates = [
+        "prompts/system_prompt.txt",
+        "prompts/atlas_vertex_context_pack.txt",
+        "ENTERPRISE_PIPELINE_BRIEF_AR.md",
+        "PROJECT_PLAN_EN.md",
+        "README.md",
+        "validator.py",
+        "repair_payload_builder.py",
+    ]
+    parts = [text] if text else []
+    for rel in candidates:
+        p = (repo_dir / rel).resolve()
+        chunk = _try_read_file(p)
+        if not chunk:
+            continue
+        marker = f"\n\n[Source: {rel}]\n"
+        parts.append(marker + chunk)
+        merged = "\n".join(parts)
+        if _approx_token_count(merged) >= 1100:
+            return merged
+    return "\n".join(parts).strip()
+
+
+def _post_cached_content(
+    *,
+    project: str,
+    location: str,
+    token: str,
+    model: str,
+    display_name: str,
+    ttl_seconds: int,
+    system_text: str,
+    context_text: str,
+) -> Tuple[int, str]:
+    host = "aiplatform.googleapis.com" if location == "global" else f"{location}-aiplatform.googleapis.com"
+    url = f"https://{host}/v1/projects/{project}/locations/{location}/cachedContents"
+    payload: Dict[str, object] = {
+        "model": f"projects/{project}/locations/{location}/publishers/google/models/{model}",
+        "displayName": display_name,
+        "ttl": f"{max(60, int(ttl_seconds))}s",
+        "systemInstruction": {"parts": [{"text": system_text}]},
+        "contents": [{"role": "user", "parts": [{"text": context_text}]}],
+    }
+    resp = requests.post(
+        url,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        },
+        json=payload,
+        timeout=180,
+    )
+    return resp.status_code, resp.text
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description="Create Vertex AI context cache")
+    ap.add_argument("--config", default="sample_web_auto_solver_vps.yaml")
+    ap.add_argument("--system", default="prompts/system_prompt.txt")
+    ap.add_argument("--context", default="prompts/atlas_vertex_context_pack.txt")
+    ap.add_argument("--model", default=None, help="Vertex model ID (e.g. gemini-1.5-pro)")
+    ap.add_argument("--display-name", default="atlas-qa-cache")
+    ap.add_argument("--ttl-seconds", type=int, default=86400)
+    args = ap.parse_args()
+
+    dotenv = _load_dotenv(Path(".env"))
+    
+    # Resolve model: Arg -> Env -> Default
+    model_id = args.model or _read_secret("VERTEX_MODEL", dotenv) or "gemini-1.5-pro"
+
+    try:
+        from google.auth.transport.requests import Request
+        from google.oauth2 import service_account
+    except Exception as exc:
+        raise RuntimeError(
+            "Missing dependency google-auth. Install with: pip install google-auth requests pyyaml"
+        ) from exc
+
+    cfg_path = Path(args.config).resolve()
+    if not cfg_path.exists():
+        raise FileNotFoundError(f"Config file not found: {cfg_path}")
+    cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
+    gem = cfg.get("gemini", {}) if isinstance(cfg, dict) else {}
+    if not isinstance(gem, dict):
+        raise RuntimeError("Invalid gemini section in config.")
+    dotenv = _load_dotenv(Path(".env"))
+
+    project = str(gem.get("vertex_project", "") or "").strip() or _read_secret("GOOGLE_CLOUD_PROJECT", dotenv)
+    location = str(gem.get("vertex_location", "us-central1") or "us-central1").strip()
+    cred_raw = str(gem.get("vertex_credentials_path", "") or "").strip() or _read_secret(
+        "GOOGLE_APPLICATION_CREDENTIALS", dotenv
+    )
+
+    if not project:
+        raise RuntimeError(
+            "Missing Vertex project. Set gemini.vertex_project, GOOGLE_CLOUD_PROJECT in env, or .env."
+        )
+    if not cred_raw:
+        raise RuntimeError(
+            "Missing Vertex credentials path. Set gemini.vertex_credentials_path, "
+            "GOOGLE_APPLICATION_CREDENTIALS in env, or .env."
+        )
+
+    cred_path = Path(cred_raw).resolve()
+    if not cred_path.exists():
+        raise FileNotFoundError(f"Credentials file not found: {cred_path}")
+
+    cfg_dir = cfg_path.parent
+
+    # Resolve system text (file -> config text -> default).
+    system_text = _try_read_file(Path(args.system).resolve())
+    if not system_text:
+        system_text = str(gem.get("system_instruction_text", "") or "").strip()
+    if not system_text:
+        system_text = DEFAULT_SYSTEM_PROMPT
+        print("[warn] system prompt file not found; using built-in default system prompt.")
+
+    # Resolve context text (arg file -> gem.context_file -> gem.context_text).
+    context_text = _try_read_file(Path(args.context).resolve())
+    if not context_text:
+        context_file_cfg = str(gem.get("context_file", "") or "").strip()
+        if context_file_cfg:
+            context_file_path = Path(context_file_cfg)
+            if not context_file_path.is_absolute():
+                context_file_path = (cfg_dir / context_file_path).resolve()
+            context_text = _try_read_file(context_file_path)
+    if not context_text:
+        context_text = str(gem.get("context_text", "") or "").strip()
+    if not context_text:
+        raise FileNotFoundError(
+            "No context content found. Provide --context file or set gemini.context_file/context_text in config."
+        )
+
+    creds = service_account.Credentials.from_service_account_file(
+        str(cred_path),
+        scopes=["https://www.googleapis.com/auth/cloud-platform"],
+    )
+    creds.refresh(Request())
+    token = str(getattr(creds, "token", "") or "").strip()
+    if not token:
+        raise RuntimeError("Could not get access token.")
+
+    status, text = _post_cached_content(
+        project=project,
+        location=location,
+        token=token,
+        model=model_id,
+        display_name=args.display_name,
+        ttl_seconds=args.ttl_seconds,
+        system_text=system_text,
+        context_text=context_text,
+    )
+    used_location = location
+    if status != 200 and location != "global" and status in (404, 429, 502, 503, 504):
+        print(f"[warn] create cache failed on location={location} (HTTP {status}), retrying on global...")
+        status, text = _post_cached_content(
+            project=project,
+            location="global",
+            token=token,
+            model=model_id,
+            display_name=args.display_name,
+            ttl_seconds=args.ttl_seconds,
+            system_text=system_text,
+            context_text=context_text,
+        )
+        used_location = "global"
+    
+    if status == 400 and "minimum token count" in text.lower():
+        print("[warn] cached content too small; auto-expanding context from repo docs and retrying...")
+        expanded_context = _expand_context_with_repo_docs(context_text, cfg_path.parent.resolve())
+        print(
+            f"[info] context tokens approx: before={_approx_token_count(context_text)} "
+            f"after={_approx_token_count(expanded_context)}"
+        )
+        status, text = _post_cached_content(
+            project=project,
+            location=used_location,
+            token=token,
+            model=model_id,
+            display_name=args.display_name,
+            ttl_seconds=args.ttl_seconds,
+            system_text=system_text,
+            context_text=expanded_context,
+        )
+
+    print("HTTP", status)
+    if status != 200:
+        print(text[:4000])
+        raise SystemExit(1)
+
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError as e:
+        print(f"[error] Failed to parse response JSON: {e}")
+        print(text[:4000])
+        raise SystemExit(1)
+    
+    print("CACHE_NAME=", data.get("name", ""))
+    print("LOCATION_USED=", used_location)
+    print(json.dumps(data, ensure_ascii=False, indent=2)[:4000])
+
+
+if __name__ == "__main__":
+    main()

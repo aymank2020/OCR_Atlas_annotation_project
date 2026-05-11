@@ -1,0 +1,161 @@
+browser:
+  headless: true
+  use_chrome_profile: false
+  restore_state_in_profile_mode: false
+  fallback_to_isolated_context_on_profile_error: false
+run:
+  dry_run: false
+  max_episodes_per_run: 0
+  reserve_wait_only_on_rate_limit: true
+  reserve_attempts_per_visit: 1
+  skip_reserve_when_all_visible_blocked: true
+  clear_blocked_tasks_after_all_visible_blocked_hits: 2
+  reserve_rate_limit_wait_sec: 180
+  reserve_min_interval_sec: 90
+  no_task_retry_count: 4
+  no_task_retry_delay_sec: 20.0
+  no_task_backoff_factor: 1.6
+  no_task_max_delay_sec: 180.0
+  keep_alive_when_idle: true
+  keep_alive_idle_cycle_pause_sec: 180.0
+  continue_on_episode_error: true
+  max_episode_failures_per_run: 20
+  reuse_cached_labels: true
+  execute_force_fresh_gemini: false
+  execute_require_video_context: false
+  enable_policy_gate: true
+  block_apply_on_validation_fail: true
+  skip_policy_lexical_checks_on_unchanged_labels: true
+  ignore_timestamp_policy_errors_when_adjust_disabled: true
+  ignore_no_action_standalone_policy_error: true
+  play_full_video_before_labeling: false
+  enable_structural_actions: true
+  requery_after_structural_actions: true
+  adjust_timestamps: false
+  timestamp_adjust_mode: 'off'
+  label_apply_progress_every: 4
+  label_apply_max_total_sec: 420
+  label_apply_max_failures: 8
+  label_apply_input_timeout_ms: 5000
+  label_apply_save_timeout_ms: 3000
+  label_apply_edit_click_timeout_ms: 2000
+  submit_guard_enabled: true
+  submit_guard_max_failure_ratio: 0.2
+  submit_guard_min_applied_ratio: 0.9
+  submit_guard_block_on_budget_exceeded: true
+atlas:
+  room_url: https://audit.atlascapture.io/tasks/room/normal
+gemini:
+  model: gemini-2.5-flash
+  policy_retry_model: gemini-2.5-pro
+  retry_with_stronger_model_on_policy_fail: false
+  policy_retry_only_if_flash: true
+  temperature: 0.0
+  top_p: null
+  top_k: null
+  max_output_tokens: null
+  candidate_count: 1
+  rate_limit_enabled: true
+  rate_limit_requests_per_minute: 9
+  rate_limit_window_sec: 60.0
+  rate_limit_min_interval_sec: 6.8
+  attach_video: true
+  quota_fallback_enabled: false
+  quota_fallback_max_uses_per_run: 1
+  require_video: false
+  skip_video_when_segments_le: 0
+  price_input_per_million: 0.3
+  price_output_per_million: 2.5
+  usage_log_file: gemini_usage.jsonl
+  video_transport: inline
+  optimize_video_for_upload: true
+  optimize_video_target_mb: 4.0
+  optimize_video_target_fps: 10.0
+  optimize_video_min_fps: 8.0
+  optimize_video_min_width: 320
+  optimize_video_min_short_side: 320
+  max_inline_video_mb: 20.0
+  reference_frames_enabled: true
+  reference_frames_always: false
+  reference_frame_attach_when_video_mb_le: 2.5
+  reference_frame_count: 2
+  reference_frame_positions:
+  - 0.2
+  - 0.55
+  - 0.85
+  reference_frame_max_side: 960
+  reference_frame_jpeg_quality: 82
+  reference_frame_max_total_kb: 420
+  extra_instructions: If floor mat vs table is unclear, do not guess raised furniture;
+    use neutral location wording.
+training_feedback:
+  enabled: true
+  continuous: true
+  interval_sec: 1800
+  max_cycles: 0
+  max_episodes: 20
+  root_dir: outputs/training_feedback
+  runs_subdir: runs
+  live_subdir: live
+  migrate_legacy_dirs: true
+  max_consecutive_failures: 5
+  track_t4_disputes: true
+  t4_tracker_filename: t4_tracker_state.json
+  t4_transitions_filename: t4_transitions_history.jsonl
+  t4_lessons_filename: t4_lessons_history.jsonl
+  disputes_status_filters:
+  - Disputed
+  - Awaiting T2
+  - Both OK
+  enable_alignment_review: true
+  alignment_lessons_filename: alignment_lessons_history.jsonl
+  alignment_max_episodes_in_prompt: 20
+  alignment_max_chars_per_episode: 2500
+  use_chrome_profile: false
+discord_training:
+  enabled: true
+  continuous: true
+  interval_sec: 900
+  max_cycles: 0
+  root_dir: outputs/training_feedback/discord
+  runs_subdir: runs
+  live_subdir: live
+  input_dir: outputs/discord_exports
+  include_subdirs: true
+  file_patterns:
+  - '*.json'
+  - '*.txt'
+  max_files_per_cycle: 120
+  max_messages_in_prompt: 350
+  max_chars_per_message: 900
+  min_new_messages_for_gemini: 1
+  channel_allowlist_ids:
+  - '1485540323584118877'
+  channel_allowlist_names:
+  - atlas-rules
+  author_allowlist:
+  - Frans
+  - Duwop
+  update_keywords:
+  - update
+  - new rule
+  - guideline
+  - forbidden
+  - must
+  - do not
+  - limit
+  - gripper
+  - coarse
+  - dense
+  - atomic
+  - hallucination
+  export_command: ''
+  export_workdir: ''
+  export_timeout_sec: 180
+  state_filename: collector_state.json
+  max_seen_ids: 50000
+  policy_override_file: data/gemini_policy_discord_live.txt
+  sync_policy_into_main_file: true
+  main_policy_file: data/gemini_policy_v1.txt
+  managed_block_start: '# BEGIN_DISCORD_LIVE_UPDATES'
+  managed_block_end: '# END_DISCORD_LIVE_UPDATES'
