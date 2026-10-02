@@ -62,22 +62,28 @@ def _is_authenticated_gemini_page(page: Any) -> bool:
 
 def _select_existing_gemini_page(context: Any, *, target_url: str = "") -> tuple[Any, bool]:
     target = str(target_url or "").strip()
+    dedicated = _is_dedicated_gemini_chat_url(target)
+    target_chat = target.split("?", 1)[0].split("#", 1)[0].rstrip("/")
     fallback_page = None
     fallback_authenticated = None
     try:
         for candidate in reversed(list(getattr(context, "pages", []) or [])):
             current_url = str(getattr(candidate, "url", "") or "").strip()
             authenticated = _is_authenticated_gemini_page(candidate)
-            if target and current_url.startswith(target) and authenticated:
+            current_chat = current_url.split("?", 1)[0].split("#", 1)[0].rstrip("/")
+            matches = bool(target) and (current_chat == target_chat if dedicated else current_url.startswith(target))
+            if matches and authenticated:
                 return candidate, True
-            if target and current_url.startswith(target) and fallback_page is None:
+            if matches and fallback_page is None:
                 fallback_page = candidate
             if "gemini.google.com" in current_url and authenticated and fallback_authenticated is None:
                 fallback_authenticated = candidate
-            if fallback_page is None and "gemini.google.com" in current_url:
+            if fallback_page is None and "gemini.google.com" in current_url and not dedicated:
                 fallback_page = candidate
     except Exception:
         return None, False
+    if _is_dedicated_gemini_chat_url(target):
+        return (fallback_page, True) if fallback_page is not None else (None, False)
     if fallback_authenticated is not None:
         return fallback_authenticated, True
     if fallback_page is not None and not _is_dedicated_gemini_chat_url(target):
