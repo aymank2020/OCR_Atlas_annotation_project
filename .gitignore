@@ -70,3 +70,10 @@ OCR_Atlas_Decision_Matrix.pdf
 OCR_Atlas_Technical_Audit_Report.pdf
 OCR_Atlas_v2_Review_Report_Final.pdf
 move to small.docx
+
+# Local policy artifacts generated while exercising the offline test/runtime path
+/data/policy/current_policy.json
+/data/policy/generated_prompt_summary.txt
+/data/policy/policy_diff.json
+/data/policy/staged_rules.jsonl
+/data/policy/trust_config.json
